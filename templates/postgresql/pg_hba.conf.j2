@@ -1,0 +1,17 @@
+#jinja2: trim_blocks: True, lstrip_blocks: True
+{{ ansible_managed | comment }}
+
+# Database Administrative Control File (pg_hba.conf)
+# TYPE  DATABASE        USER            ADDRESS                 METHOD
+
+{% for entry in postgresql_hba_entries %}
+{% if entry.comment is defined and entry.comment %}
+# {{ entry.comment }}
+{% endif %}
+{% if entry.type == 'local' %}
+{{ "%-7s %-15s %-15s %s" | format(entry.type, entry.database, entry.user, entry.auth_method) }}
+{% else %}
+{{ "%-7s %-15s %-15s %-23s %s" | format(entry.type, entry.database, entry.user, entry.address | default('0.0.0.0/0'), entry.auth_method) }}
+{% endif %}
+
+{% endfor %}

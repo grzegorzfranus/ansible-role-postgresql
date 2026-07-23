@@ -1,0 +1,98 @@
+---
+# ==============================================================================
+# PostgreSQL Main Task Orchestrator
+# ==============================================================================
+# Flow:
+# 1. include_vars OS defaults
+# 2. assert input configuration
+# 3. resolve effective version
+# 4. prerequisites
+# 5. repository (PGDG deb822)
+# 6. install server & client packages
+# 7. configure conf.d drop-in & pg_hba.conf
+# 8. databases, users, privs, extensions
+# 9. logrotate (optional)
+# 10. upgrade (optional)
+# 11. test readiness (optional)
+# ==============================================================================
+
+- name: "PostgreSQL | Include OS family variables"
+  ansible.builtin.include_vars: "{{ item }}"
+  with_first_found:
+    - files:
+        - "{{ ansible_facts['distribution'] | lower }}_{{ ansible_facts['distribution_version'] }}.yml"
+        - "{{ ansible_facts['distribution'] | lower }}_{{ ansible_facts['distribution_major_version'] }}.yml"
+        - "{{ ansible_facts['os_family'] | lower }}.yml"
+      skip: true
+  tags:
+    - always
+    - postgresql_setup
+
+- name: "PostgreSQL | Run configuration assertions"
+  ansible.builtin.include_tasks: assert.yml
+  tags:
+    - always
+    - postgresql_setup
+
+- name: "PostgreSQL | Determine effective PostgreSQL major version"
+  ansible.builtin.set_fact:
+    __postgresql_effective_version: "{{ postgresql_version if (postgresql_use_pgdg_repo | bool) else __postgresql_default_version }}"
+  tags:
+    - always
+    - postgresql_setup
+
+- name: "PostgreSQL | Include prerequisites tasks"
+  ansible.builtin.include_tasks: prerequisites.yml
+  when: postgresql_role_action in ['all', 'prerequisites']
+  tags:
+    - postgresql_setup
+    - postgresql_install
+
+- name: "PostgreSQL | Include PGDG repository tasks"
+  ansible.builtin.include_tasks: repository.yml
+  when:
+    - postgresql_role_action in ['all', 'install']
+    - postgresql_use_pgdg_repo | bool
+  tags:
+    - postgresql_install
+
+- name: "PostgreSQL | Include installation tasks"
+  ansible.builtin.include_tasks: install.yml
+  when: postgresql_role_action in ['all', 'install']
+  tags:
+    - postgresql_install
+
+- name: "PostgreSQL | Include configuration tasks"
+  ansible.builtin.include_tasks: configure.yml
+  when: postgresql_role_action in ['all', 'configure']
+  tags:
+    - postgresql_configure
+
+- name: "PostgreSQL | Include database objects tasks"
+  ansible.builtin.include_tasks: databases.yml
+  when:
+    - postgresql_role_action in ['all', 'databases']
+    - (postgresql_databases | length > 0) or (postgresql_users | length > 0) or (postgresql_privs | length > 0) or (postgresql_extensions | length > 0)
+  tags:
+    - postgresql_databases
+
+- name: "PostgreSQL | Include logrotate configuration tasks"
+  ansible.builtin.include_tasks: logrotate.yml
+  when:
+    - postgresql_role_action in ['all', 'configure']
+    - postgresql_configure_logrotate | bool
+  tags:
+    - postgresql_logrotate
+
+- name: "PostgreSQL | Include upgrade tasks"
+  ansible.builtin.include_tasks: upgrade.yml
+  when: postgresql_role_action == 'upgrade'
+  tags:
+    - postgresql_upgrade
+
+- name: "PostgreSQL | Include readiness test tasks"
+  ansible.builtin.include_tasks: test.yml
+  when:
+    - (postgresql_role_action == 'all' and (postgresql_run_test | bool)) or postgresql_role_action == 'test'
+  tags:
+    - postgresql_test

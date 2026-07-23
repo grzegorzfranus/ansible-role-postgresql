@@ -1,0 +1,21 @@
+---
+# ==============================================================================
+# PostgreSQL Package Installation Tasks
+# ==============================================================================
+
+- name: "PostgreSQL | install | Install PostgreSQL server and client packages"
+  ansible.builtin.apt:
+    name: "{{ ['postgresql-' ~ __postgresql_effective_version, 'postgresql-client-' ~ __postgresql_effective_version] + postgresql_install_extra_packages }}"
+    state: present
+  become: true
+  register: __postgresql_packages_install
+  retries: 3
+  delay: 5
+  until: __postgresql_packages_install is succeeded
+
+- name: "PostgreSQL | install | Ensure PostgreSQL service is enabled and started"
+  ansible.builtin.systemd:
+    name: "{{ __postgresql_service_name }}"
+    enabled: "{{ postgresql_service_enabled | bool }}"
+    state: started
+  become: true

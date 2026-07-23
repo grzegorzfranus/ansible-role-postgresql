@@ -1,0 +1,30 @@
+---
+# ==============================================================================
+# PostgreSQL Role Internal Variables
+# ==============================================================================
+# Mandatory variable standards:
+# - All internal variables MUST use the double-underscore prefix `__postgresql_`.
+# - Public overrides are strictly forbidden in this file; use `defaults/main.yml`.
+# ==============================================================================
+
+__postgresql_supported_versions:
+  - "14"
+  - "15"
+  - "16"
+  - "17"
+  - "18"
+
+__postgresql_service_name: "postgresql"
+__postgresql_cluster_service_name: "postgresql@{{ __postgresql_effective_version }}-main"
+__postgresql_config_dir: "/etc/postgresql/{{ __postgresql_effective_version }}/main"
+__postgresql_conf_d_dir: "/etc/postgresql/{{ __postgresql_effective_version }}/main/conf.d"
+__postgresql_hba_path: "/etc/postgresql/{{ __postgresql_effective_version }}/main/pg_hba.conf"
+__postgresql_data_dir: "/var/lib/postgresql/{{ __postgresql_effective_version }}/main"
+__postgresql_bin_dir: "/usr/lib/postgresql/{{ __postgresql_effective_version }}/bin"
+
+__postgresql_user: "postgres"
+__postgresql_group: "postgres"
+
+__postgresql_python_package: "python3-psycopg"
+__postgresql_pgdg_repo_uri: "https://apt.postgresql.org/pub/repos/apt"
+__postgresql_pgdg_key_url: "https://www.postgresql.org/media/keys/ACCC4CF8.asc"

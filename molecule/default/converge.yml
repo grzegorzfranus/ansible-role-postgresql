@@ -1,0 +1,26 @@
+---
+- name: Converge
+  hosts: all
+  become: true
+  vars:
+    postgresql_run_test: true
+    postgresql_install_extra_packages:
+      - postgresql-contrib
+    postgresql_databases:
+      - name: "molecule_db"
+        encoding: "UTF8"
+    postgresql_users:
+      - name: "molecule_user"
+        password: "MoleculeSecurePassword123!"
+        role_attr_flags: "NOSUPERUSER,NOCREATEDB"
+    postgresql_privs:
+      - database: "molecule_db"
+        roles: ["molecule_user"]
+        privs: "ALL"
+        type: "database"
+    postgresql_extensions:
+      - name: "pgcrypto"
+        db: "molecule_db"
+
+  roles:
+    - role: ansible-role-postgresql

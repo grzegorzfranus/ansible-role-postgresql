@@ -1,0 +1,32 @@
+---
+# ==============================================================================
+# PostgreSQL Readiness Test Tasks
+# ==============================================================================
+
+# Justification: pg_isready utility provides standard cluster socket connection checking.
+- name: "PostgreSQL | test | Check server readiness using pg_isready"
+  ansible.builtin.command: "pg_isready -p {{ postgresql_port }}"
+  register: __postgresql_isready_check
+  failed_when: false
+  changed_when: false
+
+- name: "PostgreSQL | test | Assert pg_isready exit code"
+  ansible.builtin.assert:
+    that:
+      - __postgresql_isready_check.rc == 0
+    fail_msg: "PostgreSQL server ping failed via pg_isready on port {{ postgresql_port }}. Output: {{ __postgresql_isready_check.stdout }}"
+    success_msg: "PostgreSQL server is ready and responding on port {{ postgresql_port }}."
+
+- name: "PostgreSQL | test | Ping database cluster via community.postgresql"
+  community.postgresql.postgresql_ping:
+    port: "{{ postgresql_port }}"
+  become: true
+  become_user: "{{ __postgresql_user }}"
+  register: __postgresql_ping_check
+
+- name: "PostgreSQL | test | Assert database ping success"
+  ansible.builtin.assert:
+    that:
+      - __postgresql_ping_check.is_available | bool
+    fail_msg: "PostgreSQL cluster ping via community.postgresql failed."
+    success_msg: "PostgreSQL cluster successfully responded to connection ping."

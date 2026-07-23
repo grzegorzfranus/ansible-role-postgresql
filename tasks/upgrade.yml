@@ -1,0 +1,14 @@
+---
+# ==============================================================================
+# PostgreSQL Package Minor Upgrade Tasks
+# ==============================================================================
+
+- name: "PostgreSQL | upgrade | Upgrade PostgreSQL packages to latest minor release"
+  ansible.builtin.apt:
+    name:
+      - "postgresql-{{ __postgresql_effective_version }}"
+      - "postgresql-client-{{ __postgresql_effective_version }}"
+    state: latest
+    only_upgrade: true
+  become: true
+  notify: "restart postgresql"

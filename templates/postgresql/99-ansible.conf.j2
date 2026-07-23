@@ -1,0 +1,53 @@
+#jinja2: trim_blocks: True, lstrip_blocks: True
+{{ ansible_managed | comment }}
+
+# ==============================================================================
+# Connection & Network Settings
+# ==============================================================================
+listen_addresses = '{{ postgresql_listen_addresses | join(",") }}'
+port = {{ postgresql_port }}
+max_connections = {{ postgresql_max_connections }}
+unix_socket_directories = '{{ postgresql_unix_socket_directories | join(",") }}'
+
+# ==============================================================================
+# Memory & Performance Settings
+# ==============================================================================
+shared_buffers = {{ postgresql_shared_buffers }}
+work_mem = {{ postgresql_work_mem }}
+maintenance_work_mem = {{ postgresql_maintenance_work_mem }}
+effective_cache_size = {{ postgresql_effective_cache_size }}
+
+# ==============================================================================
+# Write-Ahead Log (WAL) & Checkpoints
+# ==============================================================================
+wal_level = {{ postgresql_wal_level }}
+max_wal_size = {{ postgresql_max_wal_size }}
+min_wal_size = {{ postgresql_min_wal_size }}
+checkpoint_completion_target = {{ postgresql_checkpoint_completion_target }}
+
+# ==============================================================================
+# Logging Settings
+# ==============================================================================
+logging_collector = {{ 'on' if postgresql_logging_collector | bool else 'off' }}
+log_directory = '{{ postgresql_log_directory }}'
+log_filename = '{{ postgresql_log_filename }}'
+log_rotation_age = {{ postgresql_log_rotation_age }}
+log_line_prefix = '{{ postgresql_log_line_prefix }}'
+log_min_duration_statement = {{ postgresql_log_min_duration_statement }}
+
+# ==============================================================================
+# Security & SSL Settings
+# ==============================================================================
+password_encryption = {{ postgresql_password_encryption }}
+ssl = {{ 'on' if postgresql_ssl_enabled | bool else 'off' }}
+{% if postgresql_ssl_enabled | bool %}
+ssl_cert_file = '{{ postgresql_ssl_cert_file }}'
+ssl_key_file = '{{ postgresql_ssl_key_file }}'
+{% endif %}
+
+# ==============================================================================
+# Extra Config Options
+# ==============================================================================
+{% for key, val in postgresql_extra_config_options.items() %}
+{{ key }} = {{ val if val is number else ("'" ~ val ~ "'") }}
+{% endfor %}

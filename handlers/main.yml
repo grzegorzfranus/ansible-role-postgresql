@@ -1,0 +1,21 @@
+---
+# ==============================================================================
+# PostgreSQL Role Service Handlers
+# ==============================================================================
+# Task naming format: PostgreSQL | handlers | <Imperative action>
+# ==============================================================================
+
+- name: "PostgreSQL | handlers | Restart PostgreSQL service"
+  ansible.builtin.systemd:
+    name: "{{ __postgresql_service_name }}"
+    state: restarted
+    daemon_reload: true
+  become: true
+  listen: "restart postgresql"
+
+- name: "PostgreSQL | handlers | Reload PostgreSQL service"
+  ansible.builtin.systemd:
+    name: "{{ __postgresql_service_name }}"
+    state: reloaded
+  become: true
+  listen: "reload postgresql"

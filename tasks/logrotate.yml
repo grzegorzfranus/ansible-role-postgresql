@@ -1,0 +1,14 @@
+---
+# ==============================================================================
+# PostgreSQL Logrotate Configuration
+# ==============================================================================
+
+- name: "PostgreSQL | logrotate | Render logrotate configuration"
+  ansible.builtin.template:
+    src: "logrotate/postgresql.j2"
+    dest: "/etc/logrotate.d/postgresql"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+    validate: "logrotate -d %s"
+  become: true

@@ -1,0 +1,36 @@
+---
+# ==============================================================================
+# PostgreSQL Prerequisites Tasks
+# ==============================================================================
+
+- name: "PostgreSQL | prerequisites | Update apt cache"
+  ansible.builtin.apt:
+    update_cache: true
+    cache_valid_time: 3600
+  become: true
+  register: __postgresql_apt_cache_update
+  retries: 3
+  delay: 5
+  until: __postgresql_apt_cache_update is succeeded
+
+- name: "PostgreSQL | prerequisites | Install required python & system packages"
+  ansible.builtin.apt:
+    name:
+      - "{{ __postgresql_python_package }}"
+      - "python3-debian"
+      - "locales"
+    state: present
+  become: true
+  register: __postgresql_prereq_packages_install
+  retries: 3
+  delay: 5
+  until: __postgresql_prereq_packages_install is succeeded
+
+- name: "PostgreSQL | prerequisites | Generate required system locales"
+  community.general.locale_gen:
+    name: "{{ item }}"
+    state: present
+  become: true
+  loop: "{{ postgresql_locales }}"
+  loop_control:
+    label: "{{ item }}"
