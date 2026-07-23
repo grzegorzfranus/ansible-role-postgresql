@@ -35,8 +35,8 @@
 
 - name: "PostgreSQL | databases | Manage declarative database privileges"
   community.postgresql.postgresql_privs:
-    database: "{{ item.database | default(item.name | default(omit)) }}"
-    roles: "{{ item.roles }}"
+    db: "{{ item.db | default(item.database | default(item.name | default(omit))) }}"
+    roles: "{{ item.roles if (item.roles is string) else (item.roles | join(',')) }}"
     privs: "{{ item.privs }}"
     type: "{{ item.type | default('database') }}"
     objs: "{{ item.objs | default(omit) }}"
@@ -46,7 +46,7 @@
   become_user: "{{ __postgresql_user }}"
   loop: "{{ postgresql_privs }}"
   loop_control:
-    label: "{{ item.roles | default([]) | join(',') }}@{{ item.database | default(item.name | default('db')) }}"
+    label: "{{ (item.roles if (item.roles is string) else (item.roles | join(','))) }}@{{ item.db | default(item.database | default(item.name | default('db'))) }}"
   when: postgresql_privs | length > 0
 
 - name: "PostgreSQL | databases | Manage declarative database extensions"

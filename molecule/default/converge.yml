@@ -14,8 +14,8 @@
         password: "MoleculeSecurePassword123!"
         role_attr_flags: "NOSUPERUSER,NOCREATEDB"
     postgresql_privs:
-      - database: "molecule_db"
-        roles: ["molecule_user"]
+      - db: "molecule_db"
+        roles: "molecule_user"
         privs: "ALL"
         type: "database"
     postgresql_extensions:
