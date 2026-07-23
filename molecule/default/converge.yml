@@ -22,5 +22,7 @@
       - name: "pgcrypto"
         db: "molecule_db"
 
-  roles:
-    - role: ansible-role-postgresql
+  tasks:
+    - name: Converge | Include postgresql role
+      ansible.builtin.include_role:
+        name: "{{ playbook_dir }}/../.."
