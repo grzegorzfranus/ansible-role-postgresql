@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0](https://github.com/grzegorzfranus/ansible-role-postgresql/compare/v1.0.0...v1.1.0) (2026-07-23)
+
+
+### Features
+
+* **postgresql:** implement standalone postgresql ansible role ([66ec59d](https://github.com/grzegorzfranus/ansible-role-postgresql/commit/66ec59d21dc580e745baf2674f868239425e889e))
+
 ## [1.0.0] - 2026-07-23
 
 ### Features
