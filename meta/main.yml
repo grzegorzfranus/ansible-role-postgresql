@@ -30,3 +30,7 @@ galaxy_info:
     - system
 
 dependencies: []
+
+collections:
+  - community.postgresql
+  - community.general
