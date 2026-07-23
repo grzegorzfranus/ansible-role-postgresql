@@ -1,0 +1,221 @@
+---
+argument_specs:
+  main:
+    short_description: Standalone PostgreSQL server role for Ubuntu and Debian
+    description:
+      - Installs and configures a standalone PostgreSQL server.
+      - Supports PGDG official repository, conf.d drop-in configuration, pg_hba.conf, and declarative DB objects.
+    author: Grzegorz Franus
+    options:
+      postgresql_role_action:
+        type: str
+        default: "all"
+        choices: ["all", "prerequisites", "install", "configure", "databases", "upgrade"]
+        description: Role execution action phase.
+
+      postgresql_service_enabled:
+        type: bool
+        default: true
+        description: Enable PostgreSQL service at boot.
+
+      postgresql_run_test:
+        type: bool
+        default: false
+        description: Perform post-configuration readiness ping tests.
+
+      postgresql_configure_logrotate:
+        type: bool
+        default: false
+        description: Render logrotate configuration for PostgreSQL log directory.
+
+      postgresql_config_change_action:
+        type: str
+        default: "reload"
+        choices: ["reload", "restart"]
+        description: Handler notification action when configuration files change.
+
+      postgresql_use_pgdg_repo:
+        type: bool
+        default: true
+        description: Enable official PGDG apt repository (apt.postgresql.org).
+
+      postgresql_version:
+        type: str
+        default: "18"
+        choices: ["14", "15", "16", "17", "18"]
+        description: PostgreSQL major version when PGDG repository is enabled.
+
+      postgresql_install_extra_packages:
+        type: list
+        elements: str
+        default: []
+        description: Additional apt packages to install alongside PostgreSQL.
+
+      postgresql_locales:
+        type: list
+        elements: str
+        default: ["en_US.UTF-8"]
+        description: List of locales to generate on the host.
+
+      postgresql_listen_addresses:
+        type: list
+        elements: str
+        default: ["localhost"]
+        description: Interface network addresses PostgreSQL listens on.
+
+      postgresql_port:
+        type: int
+        default: 5432
+        description: Port on which PostgreSQL listens.
+
+      postgresql_max_connections:
+        type: int
+        default: 100
+        description: Maximum concurrent connections allowed.
+
+      postgresql_unix_socket_directories:
+        type: list
+        elements: str
+        default: ["/var/run/postgresql"]
+        description: Unix domain socket directory paths.
+
+      postgresql_shared_buffers:
+        type: str
+        default: "128MB"
+        description: Memory dedicated to shared memory buffers.
+
+      postgresql_work_mem:
+        type: str
+        default: "4MB"
+        description: Memory used by internal sort operations and hash tables.
+
+      postgresql_maintenance_work_mem:
+        type: str
+        default: "64MB"
+        description: Maximum memory used by maintenance operations.
+
+      postgresql_effective_cache_size:
+        type: str
+        default: "4GB"
+        description: Planner assumption about total effective disk cache.
+
+      postgresql_wal_level:
+        type: str
+        default: "replica"
+        choices: ["minimal", "replica", "logical"]
+        description: Level of detail written to Write-Ahead Log.
+
+      postgresql_max_wal_size:
+        type: str
+        default: "1GB"
+        description: Maximum size to let WAL grow between automatic checkpoints.
+
+      postgresql_min_wal_size:
+        type: str
+        default: "80MB"
+        description: Minimum size of WAL files retained.
+
+      postgresql_checkpoint_completion_target:
+        type: float
+        default: 0.9
+        description: Completion target for WAL checkpoints as fraction of checkpoint distance.
+
+      postgresql_logging_collector:
+        type: bool
+        default: false
+        description: Enable background log collector.
+
+      postgresql_log_directory:
+        type: str
+        default: "log"
+        description: Directory where log files are stored.
+
+      postgresql_log_filename:
+        type: str
+        default: "postgresql-%Y-%m-%d.log"
+        description: Log file naming pattern.
+
+      postgresql_log_rotation_age:
+        type: str
+        default: "1d"
+        description: Automatic rotation age for log files.
+
+      postgresql_log_line_prefix:
+        type: str
+        default: "%m [%p] %q%u@%d "
+        description: Format string for log line prefixes.
+
+      postgresql_log_min_duration_statement:
+        type: int
+        default: -1
+        description: Minimum statement execution duration (ms) to trigger log statement.
+
+      postgresql_auth_method:
+        type: str
+        default: "scram-sha-256"
+        choices: ["scram-sha-256", "trust", "reject", "md5"]
+        description: Default authentication method for host entries.
+
+      postgresql_password_encryption:
+        type: str
+        default: "scram-sha-256"
+        choices: ["scram-sha-256", "md5"]
+        description: Password encryption algorithm.
+
+      postgresql_ssl_enabled:
+        type: bool
+        default: true
+        description: Enable SSL connection support.
+
+      postgresql_ssl_cert_file:
+        type: str
+        default: "/etc/ssl/certs/ssl-cert-snakeoil.pem"
+        description: Path to SSL certificate file.
+
+      postgresql_ssl_key_file:
+        type: str
+        default: "/etc/ssl/private/ssl-cert-snakeoil.key"
+        description: Path to SSL private key file.
+
+      postgresql_hba_entries:
+        type: list
+        elements: dict
+        description: List of declarative pg_hba.conf authentication rules.
+
+      postgresql_extra_config_options:
+        type: dict
+        default: {}
+        description: Free-form key/value dictionary rendered directly into 99-ansible.conf.
+
+      postgresql_users_no_log:
+        type: bool
+        default: true
+        description: Suppress task output logging for database user creation tasks.
+
+      postgresql_databases:
+        type: list
+        elements: dict
+        default: []
+        description: List of declarative databases to create.
+
+      postgresql_users:
+        type: list
+        elements: dict
+        default: []
+        description: List of declarative database users to create.
+
+      postgresql_privs:
+        type: list
+        elements: dict
+        default: []
+        description: List of declarative database privileges to grant or revoke.
+
+      postgresql_extensions:
+        type: list
+        elements: dict
+        default: []
+        description: List of declarative database extensions to enable.
+
+      postgresql_logrotate_options:
+        type: dict
+        description: Logrotate options for PostgreSQL log files.

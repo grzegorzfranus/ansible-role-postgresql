@@ -1,0 +1,98 @@
+---
+- name: Verify
+  hosts: all
+  become: true
+  tasks:
+    - name: "Verify | Check PostgreSQL service state"
+      ansible.builtin.systemd:
+        name: postgresql
+      register: __verify_service
+
+    - name: "Verify | Assert PostgreSQL service is active and enabled"
+      ansible.builtin.assert:
+        that:
+          - __verify_service.status.ActiveState == "active"
+          - __verify_service.status.UnitFileState == "enabled"
+        fail_msg: "PostgreSQL service is not active or enabled."
+        success_msg: "PostgreSQL service is active and enabled."
+
+    - name: "Verify | Check port 5432 is listening"
+      ansible.builtin.wait_for:
+        port: 5432
+        host: 127.0.0.1
+        timeout: 10
+
+    - name: "Verify | Stat 99-ansible.conf drop-in config file"
+      ansible.builtin.stat:
+        path: /etc/postgresql/18/main/conf.d/99-ansible.conf
+      register: __verify_conf_d
+
+    - name: "Verify | Fallback stat 99-ansible.conf for version 16"
+      ansible.builtin.stat:
+        path: /etc/postgresql/16/main/conf.d/99-ansible.conf
+      register: __verify_conf_d_v16
+      when: not __verify_conf_d.stat.exists
+
+    - name: "Verify | Assert drop-in config file permissions and owner"
+      ansible.builtin.assert:
+        that:
+          - (__verify_conf_d.stat.exists and __verify_conf_d.stat.pw_name == "postgres") or (__verify_conf_d_v16.stat.exists and __verify_conf_d_v16.stat.pw_name == "postgres")
+        fail_msg: "Drop-in configuration 99-ansible.conf was not created properly."
+        success_msg: "Drop-in configuration file exists with postgres owner."
+
+    - name: "Verify | Verify molecule_db existence catalog query"
+      community.postgresql.postgresql_query:
+        db: postgres
+        query: "SELECT datname FROM pg_database WHERE datname = 'molecule_db';"
+      become: true
+      become_user: postgres
+      register: __verify_db_query
+
+    - name: "Verify | Assert molecule_db exists"
+      ansible.builtin.assert:
+        that:
+          - __verify_db_query.query_result | length > 0
+        fail_msg: "Database molecule_db does not exist."
+        success_msg: "Database molecule_db exists in cluster catalog."
+
+    - name: "Verify | Verify molecule_user existence catalog query"
+      community.postgresql.postgresql_query:
+        db: postgres
+        query: "SELECT usename FROM pg_user WHERE usename = 'molecule_user';"
+      become: true
+      become_user: postgres
+      register: __verify_user_query
+
+    - name: "Verify | Assert molecule_user exists"
+      ansible.builtin.assert:
+        that:
+          - __verify_user_query.query_result | length > 0
+        fail_msg: "User molecule_user does not exist."
+        success_msg: "User molecule_user exists in cluster catalog."
+
+    - name: "Verify | Verify pgcrypto extension in molecule_db"
+      community.postgresql.postgresql_query:
+        db: molecule_db
+        query: "SELECT extname FROM pg_extension WHERE extname = 'pgcrypto';"
+      become: true
+      become_user: postgres
+      register: __verify_ext_query
+
+    - name: "Verify | Assert pgcrypto extension is installed"
+      ansible.builtin.assert:
+        that:
+          - __verify_ext_query.query_result | length > 0
+        fail_msg: "Extension pgcrypto is not installed in molecule_db."
+        success_msg: "Extension pgcrypto is installed in molecule_db."
+
+    - name: "Verify | Run pg_isready connection check"
+      ansible.builtin.command: pg_isready -p 5432
+      register: __verify_isready
+      changed_when: false
+
+    - name: "Verify | Assert pg_isready return code 0"
+      ansible.builtin.assert:
+        that:
+          - __verify_isready.rc == 0
+        fail_msg: "pg_isready check failed."
+        success_msg: "pg_isready check passed cleanly."

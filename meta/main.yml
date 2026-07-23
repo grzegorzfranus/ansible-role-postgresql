@@ -1,0 +1,36 @@
+---
+galaxy_info:
+  role_name: postgresql
+  author: Grzegorz Franus
+  namespace: grzegorzfranus
+  description: >
+    Ansible role to install and configure standalone PostgreSQL server on Ubuntu and Debian.
+    Supports PGDG repository, conf.d drop-in configuration, pg_hba.conf, and declarative DB objects.
+  license: Apache-2.0
+  company: EWARE
+  min_ansible_version: "2.15"
+
+  platforms:
+    - name: Ubuntu
+      versions:
+        - "noble"
+        - "resolute"
+    - name: Debian
+      versions:
+        - "trixie"
+
+  galaxy_tags:
+    - postgresql
+    - database
+    - sql
+    - server
+    - ubuntu
+    - debian
+    - security
+    - system
+
+dependencies: []
+
+collections:
+  - community.postgresql
+  - community.general

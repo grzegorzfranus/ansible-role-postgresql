@@ -1,0 +1,35 @@
+---
+# ==============================================================================
+# PostgreSQL Configuration Tasks
+# ==============================================================================
+
+- name: "PostgreSQL | configure | Ensure conf.d directory exists"
+  ansible.builtin.file:
+    path: "{{ __postgresql_conf_d_dir }}"
+    state: directory
+    owner: "{{ __postgresql_user }}"
+    group: "{{ __postgresql_group }}"
+    mode: "0755"
+  become: true
+
+- name: "PostgreSQL | configure | Render conf.d drop-in configuration (99-ansible.conf)"
+  ansible.builtin.template:
+    src: "postgresql/99-ansible.conf.j2"
+    dest: "{{ __postgresql_conf_d_dir }}/99-ansible.conf"
+    owner: "{{ __postgresql_user }}"
+    group: "{{ __postgresql_group }}"
+    mode: "0644"
+    backup: true
+  become: true
+  notify: "{{ 'restart postgresql' if postgresql_config_change_action == 'restart' else 'reload postgresql' }}"
+
+- name: "PostgreSQL | configure | Render pg_hba.conf authentication rules"
+  ansible.builtin.template:
+    src: "postgresql/pg_hba.conf.j2"
+    dest: "{{ __postgresql_hba_path }}"
+    owner: "{{ __postgresql_user }}"
+    group: "{{ __postgresql_group }}"
+    mode: "0640"
+    backup: true
+  become: true
+  notify: "{{ 'restart postgresql' if postgresql_config_change_action == 'restart' else 'reload postgresql' }}"

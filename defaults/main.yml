@@ -1,0 +1,235 @@
+---
+# ==============================================================================
+# PostgreSQL Role Public Defaults
+# Supported Operating Systems: Ubuntu 26.04 (Resolute), Ubuntu 24.04 (Noble), Debian 13 (Trixie)
+# ==============================================================================
+
+# ==============================================================================
+# 1. General Settings
+# ==============================================================================
+
+# Determines which execution phase to run ('all', 'prerequisites', 'install', 'configure', 'databases', 'upgrade').
+# Default is 'all'.
+postgresql_role_action: "all"
+
+# Controls whether the PostgreSQL systemd service is enabled at boot.
+# Default is true.
+postgresql_service_enabled: true
+
+# Controls whether post-configuration readiness ping tests are performed.
+# Default is false.
+postgresql_run_test: false
+
+# Controls whether logrotate configuration for PostgreSQL logs is rendered.
+# Default is false.
+postgresql_configure_logrotate: false
+
+# Action to take when configuration changes occur ('reload' or 'restart').
+# Default is 'reload'.
+postgresql_config_change_action: "reload"
+
+# ==============================================================================
+# 2. Installation
+# ==============================================================================
+
+# Controls whether the PGDG official apt repository (apt.postgresql.org) is enabled.
+# Default is true.
+postgresql_use_pgdg_repo: true
+
+# Selected PostgreSQL major version when PGDG repo is enabled ("14", "15", "16", "17", "18").
+# Default is "18".
+postgresql_version: "18"
+
+# Additional PostgreSQL extension or driver packages to install via apt.
+# Default is empty list [].
+postgresql_install_extra_packages: []
+
+# Locales to generate on the target host required for database cluster colation.
+# Default is ['en_US.UTF-8'].
+postgresql_locales:
+  - "en_US.UTF-8"
+
+# ==============================================================================
+# 3. Connection Settings
+# ==============================================================================
+
+# Interface network addresses PostgreSQL listens on.
+# Default is ["localhost"].
+postgresql_listen_addresses:
+  - "localhost"
+
+# Port on which PostgreSQL server listens.
+# Valid values: 1–65535. Default is 5432.
+postgresql_port: 5432
+
+# Maximum number of concurrent connections allowed.
+# Default is 100.
+postgresql_max_connections: 100
+
+# Unix domain socket directories.
+# Default is ["/var/run/postgresql"].
+postgresql_unix_socket_directories:
+  - "/var/run/postgresql"
+
+# ==============================================================================
+# 4. Memory / Performance
+# ==============================================================================
+
+# Amount of memory dedicated to shared memory buffers for database data.
+# Default is "128MB".
+postgresql_shared_buffers: "128MB"
+
+# Amount of memory used by internal sort operations and hash tables before writing to temporary disk files.
+# Default is "4MB".
+postgresql_work_mem: "4MB"
+
+# Maximum amount of memory to be used by maintenance operations such as VACUUM, CREATE INDEX, and ALTER TABLE.
+# Default is "64MB".
+postgresql_maintenance_work_mem: "64MB"
+
+# Planner's assumption about total effective disk cache available for a single query.
+# Default is "4GB".
+postgresql_effective_cache_size: "4GB"
+
+# ==============================================================================
+# 5. WAL / Checkpoints
+# ==============================================================================
+
+# Sets the level of information written to the Write-Ahead Log ('minimal', 'replica', 'logical').
+# Default is "replica".
+postgresql_wal_level: "replica"
+
+# Maximum size to let WAL grow between automatic WAL checkpoints.
+# Default is "1GB".
+postgresql_max_wal_size: "1GB"
+
+# Minimum size of WAL files retained to handle spikes in WAL usage.
+# Default is "80MB".
+postgresql_min_wal_size: "80MB"
+
+# Completion target for WAL checkpoints as a fraction of checkpoint distance (0.0–1.0).
+# Default is 0.9.
+postgresql_checkpoint_completion_target: 0.9
+
+# ==============================================================================
+# 6. Logging
+# ==============================================================================
+
+# Enables logging collector background process.
+# Default is false.
+postgresql_logging_collector: false
+
+# Directory where log files will be created relative to config or cluster directory.
+# Default is "log".
+postgresql_log_directory: "log"
+
+# File name pattern for generated log files.
+# Default is "postgresql-%Y-%m-%d.log".
+postgresql_log_filename: "postgresql-%Y-%m-%d.log"
+
+# Automatic rotation age for log files.
+# Default is "1d".
+postgresql_log_rotation_age: "1d"
+
+# Format string for log line prefixes.
+# Default is "%m [%p] %q%u@%d ".
+postgresql_log_line_prefix: "%m [%p] %q%u@%d "
+
+# Minimum statement execution duration (in ms) to trigger log statement. -1 disables logging.
+# Default is -1.
+postgresql_log_min_duration_statement: -1
+
+# ==============================================================================
+# 7. Security / Authentication
+# ==============================================================================
+
+# Default authentication method for host entries in pg_hba.conf ('scram-sha-256', 'trust', 'reject').
+# Security note: Never use md5 or trust in production environments. Default is "scram-sha-256".
+postgresql_auth_method: "scram-sha-256"
+
+# Password encryption algorithm used when setting user passwords.
+# Default is "scram-sha-256".
+postgresql_password_encryption: "scram-sha-256"
+
+# Controls whether SSL connections are enabled.
+# Default is true.
+postgresql_ssl_enabled: true
+
+# Path to the SSL certificate file.
+# Default uses Debian/Ubuntu default snakeoil certificate.
+postgresql_ssl_cert_file: "/etc/ssl/certs/ssl-cert-snakeoil.pem"
+
+# Path to the SSL private key file.
+# Default uses Debian/Ubuntu default snakeoil key.
+postgresql_ssl_key_file: "/etc/ssl/private/ssl-cert-snakeoil.key"
+
+# List of declarative pg_hba.conf host authentication entries.
+# Each entry is a dict with keys: type, database, user, address (optional), auth_method, comment (optional).
+postgresql_hba_entries:
+  - type: "local"
+    database: "all"
+    user: "postgres"
+    auth_method: "peer"
+    comment: "Local postgres user peer authentication"
+  - type: "local"
+    database: "all"
+    user: "all"
+    auth_method: "peer"
+    comment: "Local all users peer authentication"
+  - type: "host"
+    database: "all"
+    user: "all"
+    address: "127.0.0.1/32"
+    auth_method: "scram-sha-256"
+    comment: "IPv4 local loopback authentication"
+  - type: "host"
+    database: "all"
+    user: "all"
+    address: "::1/128"
+    auth_method: "scram-sha-256"
+    comment: "IPv6 local loopback authentication"
+
+# ==============================================================================
+# 8. Extra Server Configuration
+# ==============================================================================
+
+# Free-form dictionary of key/value pairs to render into 99-ansible.conf.
+# Values specified here override typed parameters in case of key collision. Default is {}.
+postgresql_extra_config_options: {}
+
+# ==============================================================================
+# 9. Databases & Users
+# ==============================================================================
+
+# Controls whether task execution logging is suppressed for user creation tasks.
+# Security note: Set to true in production to prevent password leaks in Ansible output. Default is true.
+postgresql_users_no_log: true
+
+# Declarative list of databases to create.
+# Each item dict contains keys: name, owner (optional), encoding (optional), lc_collate (optional), lc_ctype (optional).
+postgresql_databases: []
+
+# Declarative list of database users/roles to create.
+# Each item dict contains keys: name, password (optional), role_attr_flags (optional), encrypted (optional).
+postgresql_users: []
+
+# Declarative list of privileges to grant or revoke.
+# Each item dict contains keys: name (database), roles, privs, type (optional), objs (optional).
+postgresql_privs: []
+
+# Declarative list of PostgreSQL extensions to enable.
+# Each item dict contains keys: name, db, state (optional).
+postgresql_extensions: []
+
+# ==============================================================================
+# 10. Logrotate Configuration
+# ==============================================================================
+
+# Options dictionary for logrotate configuration template when postgresql_configure_logrotate is true.
+postgresql_logrotate_options:
+  rotate: 7
+  frequency: "daily"
+  compress: true
+  delaycompress: true
+  missingok: true
+  notifempty: true

@@ -1,0 +1,63 @@
+---
+# ==============================================================================
+# PostgreSQL Declarative Database Objects Management
+# ==============================================================================
+
+- name: "PostgreSQL | databases | Manage declarative databases"
+  community.postgresql.postgresql_db:
+    name: "{{ item.name }}"
+    owner: "{{ item.owner | default(omit) }}"
+    encoding: "{{ item.encoding | default(omit) }}"
+    lc_collate: "{{ item.lc_collate | default(omit) }}"
+    lc_ctype: "{{ item.lc_ctype | default(omit) }}"
+    state: "{{ item.state | default('present') }}"
+  become: true
+  become_user: "{{ __postgresql_user }}"
+  loop: "{{ postgresql_databases }}"
+  loop_control:
+    label: "{{ item.name }}"
+  when: postgresql_databases | length > 0
+
+- name: "PostgreSQL | databases | Manage declarative database users"
+  community.postgresql.postgresql_user:
+    name: "{{ item.name }}"
+    password: "{{ item.password | default(omit) }}"
+    role_attr_flags: "{{ item.role_attr_flags | default(omit) }}"
+    encrypted: "{{ item.encrypted | default(omit) }}"
+    state: "{{ item.state | default('present') }}"
+  become: true
+  become_user: "{{ __postgresql_user }}"
+  no_log: "{{ postgresql_users_no_log | bool }}"
+  loop: "{{ postgresql_users }}"
+  loop_control:
+    label: "{{ item.name }}"
+  when: postgresql_users | length > 0
+
+- name: "PostgreSQL | databases | Manage declarative database privileges"
+  community.postgresql.postgresql_privs:
+    db: "{{ item.db | default(item.database | default(item.name | default(omit))) }}"
+    roles: "{{ item.roles if (item.roles is string) else (item.roles | join(',')) }}"
+    privs: "{{ item.privs }}"
+    type: "{{ item.type | default('database') }}"
+    objs: "{{ item.objs | default(omit) }}"
+    schema: "{{ item.schema | default(omit) }}"
+    state: "{{ item.state | default('present') }}"
+  become: true
+  become_user: "{{ __postgresql_user }}"
+  loop: "{{ postgresql_privs }}"
+  loop_control:
+    label: "{{ (item.roles if (item.roles is string) else (item.roles | join(','))) }}@{{ item.db | default(item.database | default(item.name | default('db'))) }}"
+  when: postgresql_privs | length > 0
+
+- name: "PostgreSQL | databases | Manage declarative database extensions"
+  community.postgresql.postgresql_ext:
+    name: "{{ item.name }}"
+    db: "{{ item.db }}"
+    state: "{{ item.state | default('present') }}"
+    version: "{{ item.version | default(omit) }}"
+  become: true
+  become_user: "{{ __postgresql_user }}"
+  loop: "{{ postgresql_extensions }}"
+  loop_control:
+    label: "{{ item.name }}@{{ item.db }}"
+  when: postgresql_extensions | length > 0

@@ -1,0 +1,3 @@
+---
+# Internal Debian OS family fallback default version
+__postgresql_default_version: "16"

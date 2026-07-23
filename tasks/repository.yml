@@ -1,0 +1,28 @@
+---
+# ==============================================================================
+# PostgreSQL PGDG Repository Configuration
+# ==============================================================================
+
+- name: "PostgreSQL | repository | Configure PGDG deb822 apt repository"
+  ansible.builtin.deb822_repository:
+    name: "pgdg"
+    types:
+      - "deb"
+    uris:
+      - "{{ __postgresql_pgdg_repo_uri }}"
+    suites:
+      - "{{ ansible_facts['distribution_release'] }}-pgdg"
+    components:
+      - "main"
+    signed_by: "{{ __postgresql_pgdg_key_url }}"
+    state: present
+  become: true
+
+- name: "PostgreSQL | repository | Update apt cache after repo addition"
+  ansible.builtin.apt:
+    update_cache: true
+  become: true
+  register: __postgresql_apt_post_repo_update
+  retries: 3
+  delay: 5
+  until: __postgresql_apt_post_repo_update is succeeded

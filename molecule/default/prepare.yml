@@ -1,0 +1,17 @@
+---
+- name: Prepare
+  hosts: all
+  become: true
+  tasks:
+    - name: "Prepare | Update apt cache"
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 3600
+
+    - name: "Prepare | Install python3-psycopg and python3-debian"
+      ansible.builtin.apt:
+        name:
+          - python3-psycopg
+          - python3-debian
+          - postgresql-contrib
+        state: present
