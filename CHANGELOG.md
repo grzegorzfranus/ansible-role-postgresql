@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.3](https://github.com/grzegorzfranus/ansible-role-postgresql/compare/v1.1.2...v1.1.3) (2026-07-24)
+
+
+### Bug Fixes
+
+* **postgresql:** update postgresql_ping login_port and pre-create postgres remote_tmp directory ([#11](https://github.com/grzegorzfranus/ansible-role-postgresql/issues/11)) ([18ccf68](https://github.com/grzegorzfranus/ansible-role-postgresql/commit/18ccf685ec61252ac7812318bcc6eda31cd272df))
+
 ## [1.1.2](https://github.com/grzegorzfranus/ansible-role-postgresql/compare/v1.1.1...v1.1.2) (2026-07-24)
 
 
