@@ -218,4 +218,4 @@ argument_specs:
 
       postgresql_logrotate_options:
         type: dict
-        description: Logrotate options for PostgreSQL log files.
+        description: Logrotate options for PostgreSQL log files (supports rotate, frequency, compress, delaycompress, missingok, notifempty, su).

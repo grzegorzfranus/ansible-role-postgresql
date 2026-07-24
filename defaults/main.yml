@@ -233,3 +233,4 @@ postgresql_logrotate_options:
   delaycompress: true
   missingok: true
   notifempty: true
+  su: "postgres postgres"
