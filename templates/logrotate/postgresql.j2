@@ -2,6 +2,7 @@
 {{ ansible_managed | comment }}
 
 /var/log/postgresql/*.log {
+    su {{ postgresql_logrotate_options.su | default('postgres postgres') }}
     {{ postgresql_logrotate_options.frequency | default('daily') }}
     rotate {{ postgresql_logrotate_options.rotate | default(7) }}
 {% if postgresql_logrotate_options.compress | default(true) %}
