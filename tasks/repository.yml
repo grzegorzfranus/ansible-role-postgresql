@@ -21,6 +21,7 @@
 - name: "PostgreSQL | repository | Update apt cache after repo addition"
   ansible.builtin.apt:
     update_cache: true
+    cache_valid_time: 3600
   become: true
   register: __postgresql_apt_post_repo_update
   retries: 3
