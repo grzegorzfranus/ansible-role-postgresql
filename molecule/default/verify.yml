@@ -24,19 +24,14 @@
 
     - name: "Verify | Stat 99-ansible.conf drop-in config file"
       ansible.builtin.stat:
-        path: /etc/postgresql/18/main/conf.d/99-ansible.conf
+        path: "/etc/postgresql/18/main/conf.d/99-ansible.conf"
       register: __verify_conf_d
-
-    - name: "Verify | Fallback stat 99-ansible.conf for version 16"
-      ansible.builtin.stat:
-        path: /etc/postgresql/16/main/conf.d/99-ansible.conf
-      register: __verify_conf_d_v16
-      when: not __verify_conf_d.stat.exists
 
     - name: "Verify | Assert drop-in config file permissions and owner"
       ansible.builtin.assert:
         that:
-          - (__verify_conf_d.stat.exists and __verify_conf_d.stat.pw_name == "postgres") or (__verify_conf_d_v16.stat.exists and __verify_conf_d_v16.stat.pw_name == "postgres")
+          - __verify_conf_d.stat.exists
+          - __verify_conf_d.stat.pw_name == "postgres"
         fail_msg: "Drop-in configuration 99-ansible.conf was not created properly."
         success_msg: "Drop-in configuration file exists with postgres owner."
 

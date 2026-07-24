@@ -6,8 +6,8 @@
 - name: "PostgreSQL | assert | Validate role action option"
   ansible.builtin.assert:
     that:
-      - postgresql_role_action in ['all', 'prerequisites', 'install', 'configure', 'databases', 'upgrade']
-    fail_msg: "Invalid postgresql_role_action '{{ postgresql_role_action }}'. Must be one of: 'all', 'prerequisites', 'install', 'configure', 'databases', 'upgrade'."
+      - postgresql_role_action in ['all', 'prerequisites', 'install', 'configure', 'databases', 'upgrade', 'test']
+    fail_msg: "Invalid postgresql_role_action '{{ postgresql_role_action }}'. Must be one of: 'all', 'prerequisites', 'install', 'configure', 'databases', 'upgrade', 'test'."
     success_msg: "postgresql_role_action '{{ postgresql_role_action }}' is valid."
 
 - name: "PostgreSQL | assert | Validate config change action option"
@@ -86,7 +86,8 @@
       - item.database is defined
       - item.user is defined
       - item.auth_method is defined
-    fail_msg: "Invalid pg_hba entry {{ item }}. Must define 'type', 'database', 'user', and 'auth_method'."
+      - (not item.type.startswith('host')) or (item.address is defined and item.address | length > 0)
+    fail_msg: "Invalid pg_hba entry {{ item }}. Must define 'type', 'database', 'user', 'auth_method', and 'address' (for host* types)."
     success_msg: "pg_hba entry for user '{{ item.user }}' database '{{ item.database }}' is valid."
   loop: "{{ postgresql_hba_entries }}"
   loop_control:
@@ -96,5 +97,6 @@
   ansible.builtin.assert:
     that:
       - postgresql_logrotate_options is mapping
-    fail_msg: "postgresql_logrotate_options must be a valid dictionary."
-    success_msg: "Logrotate configuration settings are valid."
+      - not (postgresql_configure_logrotate | bool) or (postgresql_logging_collector | bool)
+    fail_msg: "postgresql_logrotate_options must be a dictionary and postgresql_configure_logrotate requires postgresql_logging_collector to be enabled."
+    success_msg: "Logrotate configuration settings and requirements are valid."

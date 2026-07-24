@@ -208,13 +208,13 @@ postgresql_hba_entries:
     database: "all"
     user: "all"
     address: "127.0.0.1/32"
-    auth_method: "scram-sha-256"
+    auth_method: "{{ postgresql_auth_method }}"
     comment: "IPv4 local loopback authentication"
   - type: "host"
     database: "all"
     user: "all"
     address: "::1/128"
-    auth_method: "scram-sha-256"
+    auth_method: "{{ postgresql_auth_method }}"
     comment: "IPv6 local loopback authentication"
 
 # ==============================================================================

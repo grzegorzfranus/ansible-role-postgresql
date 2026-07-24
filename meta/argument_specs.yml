@@ -10,7 +10,7 @@ argument_specs:
       postgresql_role_action:
         type: str
         default: "all"
-        choices: ["all", "prerequisites", "install", "configure", "databases", "upgrade"]
+        choices: ["all", "prerequisites", "install", "configure", "databases", "upgrade", "test"]
         description: Role execution action phase.
 
       postgresql_service_enabled:

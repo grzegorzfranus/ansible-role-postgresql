@@ -13,5 +13,4 @@
         name:
           - python3-psycopg
           - python3-debian
-          - postgresql-contrib
         state: present
