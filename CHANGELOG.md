@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.1](https://github.com/grzegorzfranus/ansible-role-postgresql/compare/v1.1.0...v1.1.1) (2026-07-24)
+
+
+### Bug Fixes
+
+* **postgresql:** allow logrotate configuration without requiring logging_collector ([#5](https://github.com/grzegorzfranus/ansible-role-postgresql/issues/5)) ([33504fa](https://github.com/grzegorzfranus/ansible-role-postgresql/commit/33504fab539485c77047195068bc7a38c1e508b6))
+
 ## [1.1.0](https://github.com/grzegorzfranus/ansible-role-postgresql/compare/v1.0.0...v1.1.0) (2026-07-23)
 
 
