@@ -145,19 +145,43 @@ postgresql_users_no_log: true
 | `postgresql_listen_addresses` | Interface listen addresses | `["localhost"]` |
 | `postgresql_port` | PostgreSQL listen port (1–65535) | `5432` |
 | `postgresql_max_connections` | Max concurrent connections | `100` |
+| `postgresql_unix_socket_directories` | Unix domain socket directory paths | `["/var/run/postgresql"]` |
 | `postgresql_shared_buffers` | Shared buffer memory | `"128MB"` |
 | `postgresql_work_mem` | Sort/hash work memory | `"4MB"` |
 | `postgresql_maintenance_work_mem` | Maintenance work memory | `"64MB"` |
 | `postgresql_effective_cache_size` | Planner cache estimation | `"4GB"` |
 
+### Write-Ahead Log (WAL) & Checkpoints
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `postgresql_wal_level` | Level of detail written to WAL (`minimal`, `replica`, `logical`) | `"replica"` |
+| `postgresql_max_wal_size` | Max size to let WAL grow between checkpoints | `"1GB"` |
+| `postgresql_min_wal_size` | Minimum size of WAL files retained | `"80MB"` |
+| `postgresql_checkpoint_completion_target` | Completion target for WAL checkpoints (0.0–1.0) | `0.9` |
+
+### Logging Settings
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `postgresql_logging_collector` | Enable background log collector | `false` |
+| `postgresql_log_directory` | Directory where log files are stored | `"log"` |
+| `postgresql_log_filename` | Log file naming pattern | `"postgresql-%Y-%m-%d.log"` |
+| `postgresql_log_rotation_age` | Automatic rotation age for log files | `"1d"` |
+| `postgresql_log_line_prefix` | Format string for log line prefixes | `"%m [%p] %q%u@%d "` |
+| `postgresql_log_min_duration_statement` | Minimum statement duration (ms) to trigger log (-1 to disable) | `-1` |
+
 ### Authentication & Security Settings
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `postgresql_auth_method` | Default authentication method (`scram-sha-256`) | `"scram-sha-256"` |
-| `postgresql_password_encryption` | Password encryption algorithm | `"scram-sha-256"` |
+| `postgresql_auth_method` | Default authentication method (`scram-sha-256`, `trust`, `reject`, `md5`) | `"scram-sha-256"` |
+| `postgresql_password_encryption` | Password encryption algorithm (`scram-sha-256`, `md5`) | `"scram-sha-256"` |
 | `postgresql_ssl_enabled` | Enable SSL connections | `true` |
+| `postgresql_ssl_cert_file` | Path to SSL certificate file | `"/etc/ssl/certs/ssl-cert-snakeoil.pem"` |
+| `postgresql_ssl_key_file` | Path to SSL private key file | `"/etc/ssl/private/ssl-cert-snakeoil.key"` |
 | `postgresql_hba_entries` | List of pg_hba.conf rules | *See defaults/main.yml* |
+| `postgresql_extra_config_options` | Free-form key/value dictionary rendered into 99-ansible.conf | `{}` |
 | `postgresql_users_no_log` | Suppress output logging on user password tasks | `true` |
 
 ### Database Objects
@@ -168,6 +192,14 @@ postgresql_users_no_log: true
 | `postgresql_users` | List of database users to create | `[]` |
 | `postgresql_privs` | List of database privileges to grant | `[]` |
 | `postgresql_extensions` | List of database extensions to enable | `[]` |
+
+### Logrotate Settings
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `postgresql_logrotate_options` | Logrotate options dictionary for PostgreSQL log files | *See defaults/main.yml* |
+
+
 
 ## 📌 Role Properties
 

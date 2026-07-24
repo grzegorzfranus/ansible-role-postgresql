@@ -93,11 +93,11 @@
     label: "{{ item.type | default('unknown') }}:{{ item.user | default('unknown') }}@{{ item.database | default('unknown') }}"
 
 # ------------------------------------------------------------------------------
-# Section 10: Logrotate Dependency Assertion
+# Section 10: Logrotate Configuration Assertions
 # ------------------------------------------------------------------------------
-- name: "PostgreSQL | assert | Validate logrotate requirement"
+- name: "PostgreSQL | assert | Validate logrotate configuration settings"
   ansible.builtin.assert:
     that:
-      - not (postgresql_configure_logrotate | bool) or (postgresql_logging_collector | bool)
-    fail_msg: "postgresql_configure_logrotate requires postgresql_logging_collector to be enabled."
+      - postgresql_logrotate_options is mapping
+    fail_msg: "postgresql_logrotate_options must be a valid dictionary."
     success_msg: "Logrotate configuration settings are valid."
