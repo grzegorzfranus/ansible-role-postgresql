@@ -52,6 +52,27 @@
     success_msg: "postgresql_max_connections {{ postgresql_max_connections }} is valid."
 
 # ------------------------------------------------------------------------------
+# Section 4: Memory & Performance Assertions
+# ------------------------------------------------------------------------------
+- name: "PostgreSQL | assert | Validate parallel worker process counts"
+  ansible.builtin.assert:
+    that:
+      - postgresql_max_worker_processes | int >= 1
+      - postgresql_max_parallel_workers_per_gather | int >= 0
+      - postgresql_max_parallel_maintenance_workers | int >= 0
+      - postgresql_max_parallel_workers | int >= 0
+    fail_msg: "Parallel worker process counts must be non-negative integers (max_worker_processes >= 1)."
+    success_msg: "Parallel worker process configuration is valid."
+
+- name: "PostgreSQL | assert | Validate query planner storage settings"
+  ansible.builtin.assert:
+    that:
+      - postgresql_random_page_cost | float >= 0.0
+      - postgresql_effective_io_concurrency | int >= 0
+    fail_msg: "random_page_cost and effective_io_concurrency must be non-negative numeric values."
+    success_msg: "Query planner storage settings are valid."
+
+# ------------------------------------------------------------------------------
 # Section 5: WAL / Checkpoints Assertions
 # ------------------------------------------------------------------------------
 - name: "PostgreSQL | assert | Validate wal_level setting"
