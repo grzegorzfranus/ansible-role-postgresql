@@ -1,7 +1,18 @@
 ---
 # ==============================================================================
-# PostgreSQL Role Public Defaults
+# Ansible Role: PostgreSQL - Default Variables
 # Supported Operating Systems: Ubuntu 26.04 (Resolute), Ubuntu 24.04 (Noble), Debian 13 (Trixie)
+# ==============================================================================
+# Sections:
+# 1. General Settings
+# 2. Installation & Repository
+# 3. Connection & Network
+# 4. Memory & Performance
+# 5. Write-Ahead Log (WAL) & Checkpoints
+# 6. Logging
+# 7. Security / Authentication
+# 8. Database Objects
+# 9. Logrotate Options
 # ==============================================================================
 
 # ==============================================================================

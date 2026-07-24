@@ -280,6 +280,58 @@ ansible-role-postgresql/
     └── ubuntu_26.04.yml               # Ubuntu 26.04 default version
 ```
 
+## 🏷️ Tags Usage
+
+| Tag | Target Tasks | Description |
+|---|---|---|
+| `postgresql_setup` | Prerequisites & version resolution | Python packages, locale generation |
+| `postgresql_install` | PGDG repo & package installation | Apt repository and server/client packages |
+| `postgresql_configure` | conf.d & pg_hba.conf | Renders configuration files |
+| `postgresql_databases` | DB objects | Declarative databases, users, and privileges |
+| `postgresql_logrotate` | Logrotate setup | Log rotation configuration |
+| `postgresql_test` | Readiness checks | `postgresql_ping` and connectivity checks |
+
+## 🔍 Check Mode Behavior
+
+This role fully supports Ansible `--check` mode:
+- Configuration file template tasks render dry-run line diffs (`--diff`).
+- Systemd service states and declarative database objects indicate planned actions without mutating state.
+
+## 📖 Example Playbooks
+
+```yaml
+---
+- name: Deploy Standalone PostgreSQL 17 Server
+  hosts: db_servers
+  become: true
+  roles:
+    - role: grzegorzfranus.postgresql
+      vars:
+        postgresql_version: "17"
+        postgresql_shared_buffers: "1330MB"
+        postgresql_effective_cache_size: "3975MB"
+        postgresql_work_mem: "13MB"
+        postgresql_maintenance_work_mem: "332MB"
+        postgresql_auth_method: "scram-sha-256"
+        postgresql_run_test: true
+```
+
+## 🔒 Security Considerations
+
+- **Authentication**: `postgresql_auth_method` defaults to `scram-sha-256`. Legacy methods (`trust`, `md5`) are strictly prohibited in production.
+- **Log Masking**: User password generation tasks use `no_log: true` by default (`postgresql_users_no_log: true`).
+- **File Permissions**: Cluster configuration drop-ins in `/etc/postgresql/<ver>/main/conf.d/` are created with mode `0640` owned by `postgres:postgres`.
+
+## 🛠️ Troubleshooting
+
+- **Check Cluster Status**: `systemctl status postgresql` or `pg_lsclusters`.
+- **Log Inspection**: Inspect `/var/log/postgresql/` or `/var/lib/postgresql/<ver>/main/log/`.
+- **Connection Test**: Run `sudo -u postgres psql -c "\l"`.
+
+## 🤝 Contributing
+
+Contributions are welcome! Please submit Pull Requests following the Conventional Commits specification.
+
 ## CI/CD Pipeline
 
 Uses centralized GitHub Actions workflows from `grzegorzfranus/github-workflows@v3.0.1`:

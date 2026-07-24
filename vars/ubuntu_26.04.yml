@@ -1,3 +1,7 @@
 ---
+# ==============================================================================
+# Ansible Role: PostgreSQL - Ubuntu 26.04 Variables
+# ==============================================================================
+
 # Internal Ubuntu 26.04 (Resolute) distro default version
 __postgresql_default_version: "18"

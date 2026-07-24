@@ -1,3 +1,7 @@
 ---
+# ==============================================================================
+# Ansible Role: PostgreSQL - Ubuntu 24.04 Variables
+# ==============================================================================
+
 # Internal Ubuntu 24.04 (Noble) distro default version
 __postgresql_default_version: "16"

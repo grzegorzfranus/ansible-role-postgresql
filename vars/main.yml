@@ -1,6 +1,6 @@
 ---
 # ==============================================================================
-# PostgreSQL Role Internal Variables
+# Ansible Role: PostgreSQL - Internal Variables
 # ==============================================================================
 # Mandatory variable standards:
 # - All internal variables MUST use the double-underscore prefix `__postgresql_`.
