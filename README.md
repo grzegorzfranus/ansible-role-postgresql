@@ -150,12 +150,19 @@ postgresql_users_no_log: true
 | `postgresql_work_mem` | Sort/hash work memory | `"4MB"` |
 | `postgresql_maintenance_work_mem` | Maintenance work memory | `"64MB"` |
 | `postgresql_effective_cache_size` | Planner cache estimation | `"4GB"` |
+| `postgresql_max_worker_processes` | Maximum background worker processes | `8` |
+| `postgresql_max_parallel_workers_per_gather` | Parallel workers per Gather node | `2` |
+| `postgresql_max_parallel_maintenance_workers` | Parallel workers per maintenance command | `2` |
+| `postgresql_max_parallel_workers` | Maximum total parallel query workers | `8` |
+| `postgresql_random_page_cost` | Estimate of non-sequential disk fetch cost (1.1 for SSD) | `1.1` |
+| `postgresql_effective_io_concurrency` | Expected simultaneous disk I/O operations for prefetching | `200` |
 
 ### Write-Ahead Log (WAL) & Checkpoints
 
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `postgresql_wal_level` | Level of detail written to WAL (`minimal`, `replica`, `logical`) | `"replica"` |
+| `postgresql_checkpoint_timeout` | Maximum time between automatic WAL checkpoints | `"15min"` |
 | `postgresql_max_wal_size` | Max size to let WAL grow between checkpoints | `"1GB"` |
 | `postgresql_min_wal_size` | Minimum size of WAL files retained | `"80MB"` |
 | `postgresql_checkpoint_completion_target` | Completion target for WAL checkpoints (0.0–1.0) | `0.9` |

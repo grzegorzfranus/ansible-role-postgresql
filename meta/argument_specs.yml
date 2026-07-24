@@ -99,11 +99,46 @@ argument_specs:
         default: "4GB"
         description: Planner assumption about total effective disk cache.
 
+      postgresql_max_worker_processes:
+        type: int
+        default: 8
+        description: Maximum number of background worker processes.
+
+      postgresql_max_parallel_workers_per_gather:
+        type: int
+        default: 2
+        description: Maximum number of parallel workers per Gather node.
+
+      postgresql_max_parallel_maintenance_workers:
+        type: int
+        default: 2
+        description: Maximum number of parallel workers per maintenance command.
+
+      postgresql_max_parallel_workers:
+        type: int
+        default: 8
+        description: Maximum number of parallel query workers.
+
+      postgresql_random_page_cost:
+        type: float
+        default: 1.1
+        description: Planner estimate of non-sequential disk page fetch cost (1.1 for SSD).
+
+      postgresql_effective_io_concurrency:
+        type: int
+        default: 200
+        description: Expected simultaneous disk I/O operations for prefetching.
+
       postgresql_wal_level:
         type: str
         default: "replica"
         choices: ["minimal", "replica", "logical"]
         description: Level of detail written to Write-Ahead Log.
+
+      postgresql_checkpoint_timeout:
+        type: str
+        default: "15min"
+        description: Maximum time between automatic WAL checkpoints.
 
       postgresql_max_wal_size:
         type: str

@@ -16,11 +16,18 @@ shared_buffers = {{ postgresql_shared_buffers }}
 work_mem = {{ postgresql_work_mem }}
 maintenance_work_mem = {{ postgresql_maintenance_work_mem }}
 effective_cache_size = {{ postgresql_effective_cache_size }}
+max_worker_processes = {{ postgresql_max_worker_processes }}
+max_parallel_workers_per_gather = {{ postgresql_max_parallel_workers_per_gather }}
+max_parallel_maintenance_workers = {{ postgresql_max_parallel_maintenance_workers }}
+max_parallel_workers = {{ postgresql_max_parallel_workers }}
+random_page_cost = {{ postgresql_random_page_cost }}
+effective_io_concurrency = {{ postgresql_effective_io_concurrency }}
 
 # ==============================================================================
 # Write-Ahead Log (WAL) & Checkpoints
 # ==============================================================================
 wal_level = {{ postgresql_wal_level }}
+checkpoint_timeout = {{ postgresql_checkpoint_timeout }}
 max_wal_size = {{ postgresql_max_wal_size }}
 min_wal_size = {{ postgresql_min_wal_size }}
 checkpoint_completion_target = {{ postgresql_checkpoint_completion_target }}
