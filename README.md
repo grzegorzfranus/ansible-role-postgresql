@@ -140,6 +140,12 @@ postgresql_users_no_log: true
 
 ### Connection & Performance Settings
 
+> [!IMPORTANT]
+> **Configuration Change Behavior & Service Restarts**
+>
+> Modifying `postgresql_port`, `postgresql_listen_addresses`, `postgresql_shared_buffers`, `postgresql_wal_level`, or `postgresql_max_worker_processes` requires a full PostgreSQL service restart. Because `postgresql_config_change_action` defaults to `"reload"`, PostgreSQL will NOT apply changes to these parameters until a restart occurs.
+> To automatically restart PostgreSQL when configuration changes, set `postgresql_config_change_action: "restart"`.
+
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `postgresql_listen_addresses` | Interface listen addresses | `["localhost"]` |
@@ -150,12 +156,19 @@ postgresql_users_no_log: true
 | `postgresql_work_mem` | Sort/hash work memory | `"4MB"` |
 | `postgresql_maintenance_work_mem` | Maintenance work memory | `"64MB"` |
 | `postgresql_effective_cache_size` | Planner cache estimation | `"4GB"` |
+| `postgresql_max_worker_processes` | Maximum background worker processes | `8` |
+| `postgresql_max_parallel_workers_per_gather` | Parallel workers per Gather node | `2` |
+| `postgresql_max_parallel_maintenance_workers` | Parallel workers per maintenance command | `2` |
+| `postgresql_max_parallel_workers` | Maximum total parallel query workers | `8` |
+| `postgresql_random_page_cost` | Estimate of non-sequential disk fetch cost (1.1 for SSD) | `1.1` |
+| `postgresql_effective_io_concurrency` | Expected simultaneous disk I/O operations for prefetching | `200` |
 
 ### Write-Ahead Log (WAL) & Checkpoints
 
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `postgresql_wal_level` | Level of detail written to WAL (`minimal`, `replica`, `logical`) | `"replica"` |
+| `postgresql_checkpoint_timeout` | Maximum time between automatic WAL checkpoints | `"15min"` |
 | `postgresql_max_wal_size` | Max size to let WAL grow between checkpoints | `"1GB"` |
 | `postgresql_min_wal_size` | Minimum size of WAL files retained | `"80MB"` |
 | `postgresql_checkpoint_completion_target` | Completion target for WAL checkpoints (0.0–1.0) | `0.9` |
@@ -272,6 +285,58 @@ ansible-role-postgresql/
     ├── ubuntu_24.04.yml               # Ubuntu 24.04 default version
     └── ubuntu_26.04.yml               # Ubuntu 26.04 default version
 ```
+
+## 🏷️ Tags Usage
+
+| Tag | Target Tasks | Description |
+|---|---|---|
+| `postgresql_setup` | Prerequisites & version resolution | Python packages, locale generation |
+| `postgresql_install` | PGDG repo & package installation | Apt repository and server/client packages |
+| `postgresql_configure` | conf.d & pg_hba.conf | Renders configuration files |
+| `postgresql_databases` | DB objects | Declarative databases, users, and privileges |
+| `postgresql_logrotate` | Logrotate setup | Log rotation configuration |
+| `postgresql_test` | Readiness checks | `postgresql_ping` and connectivity checks |
+
+## 🔍 Check Mode Behavior
+
+This role fully supports Ansible `--check` mode:
+- Configuration file template tasks render dry-run line diffs (`--diff`).
+- Systemd service states and declarative database objects indicate planned actions without mutating state.
+
+## 📖 Example Playbooks
+
+```yaml
+---
+- name: Deploy Standalone PostgreSQL 17 Server
+  hosts: db_servers
+  become: true
+  roles:
+    - role: grzegorzfranus.postgresql
+      vars:
+        postgresql_version: "17"
+        postgresql_shared_buffers: "1330MB"
+        postgresql_effective_cache_size: "3975MB"
+        postgresql_work_mem: "13MB"
+        postgresql_maintenance_work_mem: "332MB"
+        postgresql_auth_method: "scram-sha-256"
+        postgresql_run_test: true
+```
+
+## 🔒 Security Considerations
+
+- **Authentication**: `postgresql_auth_method` defaults to `scram-sha-256`. Legacy methods (`trust`, `md5`) are strictly prohibited in production.
+- **Log Masking**: User password generation tasks use `no_log: true` by default (`postgresql_users_no_log: true`).
+- **File Permissions**: Cluster configuration drop-ins in `/etc/postgresql/<ver>/main/conf.d/` are created with mode `0640` owned by `postgres:postgres`.
+
+## 🛠️ Troubleshooting
+
+- **Check Cluster Status**: `systemctl status postgresql` or `pg_lsclusters`.
+- **Log Inspection**: Inspect `/var/log/postgresql/` or `/var/lib/postgresql/<ver>/main/log/`.
+- **Connection Test**: Run `sudo -u postgres psql -c "\l"`.
+
+## 🤝 Contributing
+
+Contributions are welcome! Please submit Pull Requests following the Conventional Commits specification.
 
 ## CI/CD Pipeline
 

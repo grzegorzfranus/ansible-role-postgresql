@@ -1,14 +1,25 @@
 ---
 # ==============================================================================
-# PostgreSQL Role Public Defaults
+# Ansible Role: PostgreSQL - Default Variables
 # Supported Operating Systems: Ubuntu 26.04 (Resolute), Ubuntu 24.04 (Noble), Debian 13 (Trixie)
+# ==============================================================================
+# Sections:
+# 1. General Settings
+# 2. Installation & Repository
+# 3. Connection & Network
+# 4. Memory & Performance
+# 5. Write-Ahead Log (WAL) & Checkpoints
+# 6. Logging
+# 7. Security / Authentication
+# 8. Database Objects
+# 9. Logrotate Options
 # ==============================================================================
 
 # ==============================================================================
 # 1. General Settings
 # ==============================================================================
 
-# Determines which execution phase to run ('all', 'prerequisites', 'install', 'configure', 'databases', 'upgrade').
+# Determines which execution phase to run ('all', 'prerequisites', 'install', 'configure', 'databases', 'upgrade', 'test').
 # Default is 'all'.
 postgresql_role_action: "all"
 
@@ -91,6 +102,30 @@ postgresql_maintenance_work_mem: "64MB"
 # Default is "4GB".
 postgresql_effective_cache_size: "4GB"
 
+# Maximum number of background worker processes that the system can support.
+# Default is 8.
+postgresql_max_worker_processes: 8
+
+# Maximum number of parallel workers that can be started by a single Gather or Gather Merge node.
+# Default is 2.
+postgresql_max_parallel_workers_per_gather: 2
+
+# Maximum number of parallel workers that can be started by a single utility command.
+# Default is 2.
+postgresql_max_parallel_maintenance_workers: 2
+
+# Maximum number of parallel workers that the system can support for parallel queries.
+# Default is 8.
+postgresql_max_parallel_workers: 8
+
+# Sets the planner's estimate of the cost of a non-sequentially-fetched disk page (1.1 for SSD).
+# Default is 1.1.
+postgresql_random_page_cost: 1.1
+
+# Sets the number of concurrent disk I/O operations that PostgreSQL expects can be executed simultaneously.
+# Default is 200.
+postgresql_effective_io_concurrency: 200
+
 # ==============================================================================
 # 5. WAL / Checkpoints
 # ==============================================================================
@@ -98,6 +133,10 @@ postgresql_effective_cache_size: "4GB"
 # Sets the level of information written to the Write-Ahead Log ('minimal', 'replica', 'logical').
 # Default is "replica".
 postgresql_wal_level: "replica"
+
+# Maximum time between automatic WAL checkpoints.
+# Default is "15min".
+postgresql_checkpoint_timeout: "15min"
 
 # Maximum size to let WAL grow between automatic WAL checkpoints.
 # Default is "1GB".
@@ -180,13 +219,13 @@ postgresql_hba_entries:
     database: "all"
     user: "all"
     address: "127.0.0.1/32"
-    auth_method: "scram-sha-256"
+    auth_method: "{{ postgresql_auth_method }}"
     comment: "IPv4 local loopback authentication"
   - type: "host"
     database: "all"
     user: "all"
     address: "::1/128"
-    auth_method: "scram-sha-256"
+    auth_method: "{{ postgresql_auth_method }}"
     comment: "IPv6 local loopback authentication"
 
 # ==============================================================================

@@ -8,7 +8,7 @@
     name:
       - "postgresql-{{ __postgresql_effective_version }}"
       - "postgresql-client-{{ __postgresql_effective_version }}"
-    state: latest
+    state: latest  # noqa: package-latest
     only_upgrade: true
   become: true
   notify: "restart postgresql"

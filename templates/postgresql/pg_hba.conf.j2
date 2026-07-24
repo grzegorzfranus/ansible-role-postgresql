@@ -11,7 +11,7 @@
 {% if entry.type == 'local' %}
 {{ "%-7s %-15s %-15s %s" | format(entry.type, entry.database, entry.user, entry.auth_method) }}
 {% else %}
-{{ "%-7s %-15s %-15s %-23s %s" | format(entry.type, entry.database, entry.user, entry.address | default('0.0.0.0/0'), entry.auth_method) }}
+{{ "%-7s %-15s %-15s %-23s %s" | format(entry.type, entry.database, entry.user, entry.address, entry.auth_method) }}
 {% endif %}
 
 {% endfor %}

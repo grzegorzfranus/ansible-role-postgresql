@@ -2,18 +2,12 @@
 # ==============================================================================
 # PostgreSQL Input Assertion Validation
 # ==============================================================================
-# Section numbering mirrors defaults/main.yml sections 1-10.
-# Every assertion must specify both `fail_msg` AND `success_msg`.
-# ==============================================================================
 
-# ------------------------------------------------------------------------------
-# Section 1: General Settings Assertions
-# ------------------------------------------------------------------------------
 - name: "PostgreSQL | assert | Validate role action option"
   ansible.builtin.assert:
     that:
-      - postgresql_role_action in ['all', 'prerequisites', 'install', 'configure', 'databases', 'upgrade']
-    fail_msg: "Invalid postgresql_role_action '{{ postgresql_role_action }}'. Must be one of: 'all', 'prerequisites', 'install', 'configure', 'databases', 'upgrade'."
+      - postgresql_role_action in ['all', 'prerequisites', 'install', 'configure', 'databases', 'upgrade', 'test']
+    fail_msg: "Invalid postgresql_role_action '{{ postgresql_role_action }}'. Must be one of: 'all', 'prerequisites', 'install', 'configure', 'databases', 'upgrade', 'test'."
     success_msg: "postgresql_role_action '{{ postgresql_role_action }}' is valid."
 
 - name: "PostgreSQL | assert | Validate config change action option"
@@ -23,9 +17,6 @@
     fail_msg: "Invalid postgresql_config_change_action '{{ postgresql_config_change_action }}'. Must be 'reload' or 'restart'."
     success_msg: "postgresql_config_change_action '{{ postgresql_config_change_action }}' is valid."
 
-# ------------------------------------------------------------------------------
-# Section 2: Installation Assertions
-# ------------------------------------------------------------------------------
 - name: "PostgreSQL | assert | Validate PostgreSQL major version"
   ansible.builtin.assert:
     that:
@@ -33,9 +24,6 @@
     fail_msg: "Unsupported postgresql_version '{{ postgresql_version }}'. Supported versions are: {{ __postgresql_supported_versions | join(', ') }}."
     success_msg: "postgresql_version '{{ postgresql_version }}' is supported."
 
-# ------------------------------------------------------------------------------
-# Section 3: Connection Settings Assertions
-# ------------------------------------------------------------------------------
 - name: "PostgreSQL | assert | Validate network port range"
   ansible.builtin.assert:
     that:
@@ -51,9 +39,24 @@
     fail_msg: "Invalid postgresql_max_connections '{{ postgresql_max_connections }}'. Must be a positive integer >= 1."
     success_msg: "postgresql_max_connections {{ postgresql_max_connections }} is valid."
 
-# ------------------------------------------------------------------------------
-# Section 5: WAL / Checkpoints Assertions
-# ------------------------------------------------------------------------------
+- name: "PostgreSQL | assert | Validate parallel worker process counts"
+  ansible.builtin.assert:
+    that:
+      - postgresql_max_worker_processes | int >= 1
+      - postgresql_max_parallel_workers_per_gather | int >= 0
+      - postgresql_max_parallel_maintenance_workers | int >= 0
+      - postgresql_max_parallel_workers | int >= 0
+    fail_msg: "Parallel worker process counts must be non-negative integers (max_worker_processes >= 1)."
+    success_msg: "Parallel worker process configuration is valid."
+
+- name: "PostgreSQL | assert | Validate query planner storage settings"
+  ansible.builtin.assert:
+    that:
+      - postgresql_random_page_cost | float >= 0.0
+      - postgresql_effective_io_concurrency | int >= 0
+    fail_msg: "random_page_cost and effective_io_concurrency must be non-negative numeric values."
+    success_msg: "Query planner storage settings are valid."
+
 - name: "PostgreSQL | assert | Validate wal_level setting"
   ansible.builtin.assert:
     that:
@@ -69,9 +72,6 @@
     fail_msg: "Invalid postgresql_checkpoint_completion_target '{{ postgresql_checkpoint_completion_target }}'. Must be between 0.0 and 1.0."
     success_msg: "postgresql_checkpoint_completion_target {{ postgresql_checkpoint_completion_target }} is valid."
 
-# ------------------------------------------------------------------------------
-# Section 7: Security / Authentication Assertions
-# ------------------------------------------------------------------------------
 - name: "PostgreSQL | assert | Validate authentication method"
   ansible.builtin.assert:
     that:
@@ -86,18 +86,17 @@
       - item.database is defined
       - item.user is defined
       - item.auth_method is defined
-    fail_msg: "Invalid pg_hba entry {{ item }}. Must define 'type', 'database', 'user', and 'auth_method'."
+      - (not item.type.startswith('host')) or (item.address is defined and item.address | length > 0)
+    fail_msg: "Invalid pg_hba entry {{ item }}. Must define 'type', 'database', 'user', 'auth_method', and 'address' (for host* types)."
     success_msg: "pg_hba entry for user '{{ item.user }}' database '{{ item.database }}' is valid."
   loop: "{{ postgresql_hba_entries }}"
   loop_control:
     label: "{{ item.type | default('unknown') }}:{{ item.user | default('unknown') }}@{{ item.database | default('unknown') }}"
 
-# ------------------------------------------------------------------------------
-# Section 10: Logrotate Configuration Assertions
-# ------------------------------------------------------------------------------
 - name: "PostgreSQL | assert | Validate logrotate configuration settings"
   ansible.builtin.assert:
     that:
       - postgresql_logrotate_options is mapping
-    fail_msg: "postgresql_logrotate_options must be a valid dictionary."
-    success_msg: "Logrotate configuration settings are valid."
+      - not (postgresql_configure_logrotate | bool) or (postgresql_logging_collector | bool)
+    fail_msg: "postgresql_logrotate_options must be a dictionary and postgresql_configure_logrotate requires postgresql_logging_collector to be enabled."
+    success_msg: "Logrotate configuration settings and requirements are valid."

@@ -16,7 +16,7 @@
 # 11. test readiness (optional)
 # ==============================================================================
 
-- name: "PostgreSQL | Include OS family variables"
+- name: "PostgreSQL | main | Include OS family variables"
   ansible.builtin.include_vars: "{{ item }}"
   with_first_found:
     - files:
@@ -28,27 +28,28 @@
     - always
     - postgresql_setup
 
-- name: "PostgreSQL | Run configuration assertions"
+- name: "PostgreSQL | main | Run configuration assertions"
   ansible.builtin.include_tasks: assert.yml
   tags:
     - always
     - postgresql_setup
 
-- name: "PostgreSQL | Determine effective PostgreSQL major version"
+# Determine effective major version: use requested PGDG version if repo is enabled, otherwise fallback to OS default
+- name: "PostgreSQL | main | Determine effective PostgreSQL major version"
   ansible.builtin.set_fact:
     __postgresql_effective_version: "{{ postgresql_version if (postgresql_use_pgdg_repo | bool) else __postgresql_default_version }}"
   tags:
     - always
     - postgresql_setup
 
-- name: "PostgreSQL | Include prerequisites tasks"
+- name: "PostgreSQL | main | Include prerequisites tasks"
   ansible.builtin.include_tasks: prerequisites.yml
   when: postgresql_role_action in ['all', 'prerequisites']
   tags:
     - postgresql_setup
     - postgresql_install
 
-- name: "PostgreSQL | Include PGDG repository tasks"
+- name: "PostgreSQL | main | Include PGDG repository tasks"
   ansible.builtin.include_tasks: repository.yml
   when:
     - postgresql_role_action in ['all', 'install']
@@ -56,19 +57,25 @@
   tags:
     - postgresql_install
 
-- name: "PostgreSQL | Include installation tasks"
+- name: "PostgreSQL | main | Include installation tasks"
   ansible.builtin.include_tasks: install.yml
   when: postgresql_role_action in ['all', 'install']
   tags:
     - postgresql_install
 
-- name: "PostgreSQL | Include configuration tasks"
+- name: "PostgreSQL | main | Include configuration tasks"
   ansible.builtin.include_tasks: configure.yml
   when: postgresql_role_action in ['all', 'configure']
   tags:
     - postgresql_configure
 
-- name: "PostgreSQL | Include database objects tasks"
+- name: "PostgreSQL | main | Flush handlers to apply configuration changes immediately"
+  ansible.builtin.meta: flush_handlers
+  when: postgresql_role_action in ['all', 'configure']
+  tags:
+    - postgresql_configure
+
+- name: "PostgreSQL | main | Include database objects tasks"
   ansible.builtin.include_tasks: databases.yml
   when:
     - postgresql_role_action in ['all', 'databases']
@@ -76,7 +83,7 @@
   tags:
     - postgresql_databases
 
-- name: "PostgreSQL | Include logrotate configuration tasks"
+- name: "PostgreSQL | main | Include logrotate configuration tasks"
   ansible.builtin.include_tasks: logrotate.yml
   when:
     - postgresql_role_action in ['all', 'configure']
@@ -84,15 +91,15 @@
   tags:
     - postgresql_logrotate
 
-- name: "PostgreSQL | Include upgrade tasks"
+- name: "PostgreSQL | main | Include upgrade tasks"
   ansible.builtin.include_tasks: upgrade.yml
   when: postgresql_role_action == 'upgrade'
   tags:
     - postgresql_upgrade
 
-- name: "PostgreSQL | Include readiness test tasks"
+- name: "PostgreSQL | main | Include readiness test tasks"
   ansible.builtin.include_tasks: test.yml
   when:
-    - (postgresql_role_action == 'all' and (postgresql_run_test | bool)) or postgresql_role_action == 'test'
+    - (postgresql_role_action in ['all', 'test'] and (postgresql_run_test | bool)) or postgresql_role_action == 'test'
   tags:
     - postgresql_test
