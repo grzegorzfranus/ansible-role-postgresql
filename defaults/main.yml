@@ -19,7 +19,7 @@
 # 1. General Settings
 # ==============================================================================
 
-# Determines which execution phase to run ('all', 'prerequisites', 'install', 'configure', 'databases', 'upgrade').
+# Determines which execution phase to run ('all', 'prerequisites', 'install', 'configure', 'databases', 'upgrade', 'test').
 # Default is 'all'.
 postgresql_role_action: "all"
 

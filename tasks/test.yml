@@ -23,6 +23,7 @@
   become: true
   become_user: "{{ __postgresql_user }}"
   register: __postgresql_ping_check
+  changed_when: false
 
 - name: "PostgreSQL | test | Assert database ping success"
   ansible.builtin.assert:

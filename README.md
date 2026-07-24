@@ -140,6 +140,12 @@ postgresql_users_no_log: true
 
 ### Connection & Performance Settings
 
+> [!IMPORTANT]
+> **Configuration Change Behavior & Service Restarts**
+>
+> Modifying `postgresql_port`, `postgresql_listen_addresses`, `postgresql_shared_buffers`, `postgresql_wal_level`, or `postgresql_max_worker_processes` requires a full PostgreSQL service restart. Because `postgresql_config_change_action` defaults to `"reload"`, PostgreSQL will NOT apply changes to these parameters until a restart occurs.
+> To automatically restart PostgreSQL when configuration changes, set `postgresql_config_change_action: "restart"`.
+
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `postgresql_listen_addresses` | Interface listen addresses | `["localhost"]` |

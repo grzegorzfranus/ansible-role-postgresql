@@ -11,6 +11,7 @@
     lc_collate: "{{ item.lc_collate | default(omit) }}"
     lc_ctype: "{{ item.lc_ctype | default(omit) }}"
     state: "{{ item.state | default('present') }}"
+    login_port: "{{ postgresql_port }}"
   become: true
   become_user: "{{ __postgresql_user }}"
   loop: "{{ postgresql_databases }}"
@@ -25,6 +26,7 @@
     role_attr_flags: "{{ item.role_attr_flags | default(omit) }}"
     encrypted: "{{ item.encrypted | default(omit) }}"
     state: "{{ item.state | default('present') }}"
+    login_port: "{{ postgresql_port }}"
   become: true
   become_user: "{{ __postgresql_user }}"
   no_log: "{{ postgresql_users_no_log | bool }}"
@@ -42,6 +44,7 @@
     objs: "{{ item.objs | default(omit) }}"
     schema: "{{ item.schema | default(omit) }}"
     state: "{{ item.state | default('present') }}"
+    login_port: "{{ postgresql_port }}"
   become: true
   become_user: "{{ __postgresql_user }}"
   loop: "{{ postgresql_privs }}"
@@ -55,6 +58,7 @@
     db: "{{ item.db }}"
     state: "{{ item.state | default('present') }}"
     version: "{{ item.version | default(omit) }}"
+    login_port: "{{ postgresql_port }}"
   become: true
   become_user: "{{ __postgresql_user }}"
   loop: "{{ postgresql_extensions }}"
