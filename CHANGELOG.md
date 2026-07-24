@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0](https://github.com/grzegorzfranus/ansible-role-postgresql/compare/v1.1.4...v1.2.0) (2026-07-24)
+
+
+### Features
+
+* **postgresql:** add parallel worker and query planner tuning variables ([#18](https://github.com/grzegorzfranus/ansible-role-postgresql/issues/18)) ([603e14c](https://github.com/grzegorzfranus/ansible-role-postgresql/commit/603e14c74c49a680d326921a8ecdf4a1757b7d4b))
+
 ## [1.1.4](https://github.com/grzegorzfranus/ansible-role-postgresql/compare/v1.1.3...v1.1.4) (2026-07-24)
 
 
