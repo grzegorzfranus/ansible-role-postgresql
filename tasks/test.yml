@@ -19,7 +19,7 @@
 
 - name: "PostgreSQL | test | Ping database cluster via community.postgresql"
   community.postgresql.postgresql_ping:
-    port: "{{ postgresql_port }}"
+    login_port: "{{ postgresql_port }}"
   become: true
   become_user: "{{ __postgresql_user }}"
   register: __postgresql_ping_check

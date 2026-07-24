@@ -3,6 +3,15 @@
 # PostgreSQL Configuration Tasks
 # ==============================================================================
 
+- name: "PostgreSQL | configure | Ensure postgres user ansible remote_tmp directory exists"
+  ansible.builtin.file:
+    path: "/var/lib/postgresql/.ansible/tmp"
+    state: directory
+    owner: "{{ __postgresql_user }}"
+    group: "{{ __postgresql_group }}"
+    mode: "0700"
+  become: true
+
 - name: "PostgreSQL | configure | Ensure conf.d directory exists"
   ansible.builtin.file:
     path: "{{ __postgresql_conf_d_dir }}"
