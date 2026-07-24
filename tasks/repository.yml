@@ -17,13 +17,7 @@
     signed_by: "{{ __postgresql_pgdg_key_url }}"
     state: present
   become: true
+  notify: "update apt cache"
 
-- name: "PostgreSQL | repository | Update apt cache after repo addition"
-  ansible.builtin.apt:
-    update_cache: true
-    cache_valid_time: 3600
-  become: true
-  register: __postgresql_apt_post_repo_update
-  retries: 3
-  delay: 5
-  until: __postgresql_apt_post_repo_update is succeeded
+- name: "PostgreSQL | repository | Flush handlers to update apt cache immediately if repository changed"
+  ansible.builtin.meta: flush_handlers

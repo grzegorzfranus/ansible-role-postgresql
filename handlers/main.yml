@@ -19,3 +19,13 @@
     state: reloaded
   become: true
   listen: "reload postgresql"
+
+- name: "PostgreSQL | handlers | Update apt cache"
+  ansible.builtin.apt:
+    update_cache: true
+  become: true
+  register: __postgresql_apt_post_repo_update
+  retries: 3
+  delay: 5
+  until: __postgresql_apt_post_repo_update is succeeded
+  listen: "update apt cache"
