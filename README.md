@@ -15,7 +15,7 @@ This Ansible role installs and configures a standalone PostgreSQL database serve
 - 📊 **Log Rotation**: Optional system logrotate integration with configuration syntax dry-run validation.
 - 🧪 **Readiness Validation**: Built-in readiness checks using `pg_isready` and `community.postgresql.postgresql_ping`.
 - 🔄 **Service Lifecycle**: Systemd unit management with configurable reload or restart triggers.
-- 🧪 **Container Integration Testing**: Molecule test scenarios on Ubuntu 24.04 and Ubuntu 26.04.
+- 🧪 **Container Integration Testing**: Molecule test scenarios on Ubuntu 24.04, Ubuntu 26.04, and Debian 13.
 
 ## 🎯 Architecture
 
@@ -146,6 +146,11 @@ postgresql_users_no_log: true
 > Modifying `postgresql_port`, `postgresql_listen_addresses`, `postgresql_shared_buffers`, `postgresql_wal_level`, or `postgresql_max_worker_processes` requires a full PostgreSQL service restart. Because `postgresql_config_change_action` defaults to `"reload"`, PostgreSQL will NOT apply changes to these parameters until a restart occurs.
 > To automatically restart PostgreSQL when configuration changes, set `postgresql_config_change_action: "restart"`.
 
+> [!NOTE]
+> **Mandatory Size & Time Unit Suffixes**
+>
+> All memory size variables (`postgresql_shared_buffers`, `postgresql_work_mem`, `postgresql_maintenance_work_mem`, `postgresql_effective_cache_size`, `postgresql_max_wal_size`, `postgresql_min_wal_size`) and time duration variables (`postgresql_checkpoint_timeout`, `postgresql_log_rotation_age`) require explicit mandatory unit suffixes without spaces (e.g., `B`, `kB`, `MB`, `GB`, `TB` for memory; `ms`, `s`, `min`, `h`, `d` for time). Bare integers without explicit unit suffixes are rejected by assertion validation.
+
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `postgresql_listen_addresses` | Interface listen addresses | `["localhost"]` |
@@ -218,15 +223,17 @@ postgresql_users_no_log: true
 > - Cluster startup logs in `/var/log/postgresql/*.log` (written by `pg_ctlcluster`) belong to the OS package's `postgresql-common` drop-in (`/etc/logrotate.d/postgresql-common`), which retains those files for 10 weekly rotations.
 > - **Path Assertion Constraint**: `postgresql_log_directory` must not resolve to `/var/log/postgresql` when `postgresql_configure_logrotate` is enabled. Setting it to `/var/log/postgresql` collides with `postgresql-common` and is blocked by validation assertions in `tasks/assert.yml`.
 
-
-
 ## 📌 Role Properties
 
 | Property | Value | Description |
 |----------|-------|-------------|
-| **Idempotent** | ✅ Yes | Running the role multiple times produces zero changes after initial convergence. |
-| **Check Mode** | ✅ Supported | Configuration rendering supports dry-run preview. |
-| **Diff Mode** | ✅ Supported | Template tasks show exact configuration line diffs. |
+| **Idempotent** | Yes | Running the role multiple times with identical inputs produces no further changes. |
+| **Check Mode** | Supported | Tasks run safely without mutating state when check mode (`--check`) is enabled. |
+| **Diff Mode** | Supported | Template changes show inline diffs when diff mode (`--diff`) is enabled. |
+
+## 📤 Role Output
+
+This role does not set any public output facts. Task-level registered variables use the `__postgresql_` prefix; internal defaults and constants are defined in `vars/`.
 
 ## 🚫 Scope Limits & Roadmap
 
@@ -238,17 +245,79 @@ The following topics are explicitly out of scope for this standalone role:
 
 ## 🔍 Verification
 
-Verify PostgreSQL cluster health:
+### Check PostgreSQL Cluster Health
+
+Verify service and database cluster accessibility:
 
 ```bash
 # Check systemd status
 sudo systemctl status postgresql
 
-# Run pg_isready
+# Run pg_isready connection check
 pg_isready -p 5432
 
-# Verify catalog access
+# Verify catalog database access
 sudo -u postgres psql -c "\l"
+```
+
+### Validate Logrotate Configuration Syntax
+
+Verify logrotate configuration syntax by executing a dry-run check:
+
+```bash
+sudo logrotate -d -s /var/lib/logrotate/status /etc/logrotate.conf
+```
+
+## 🛡️ Security Features
+
+- **Authentication**: `postgresql_auth_method` defaults to `scram-sha-256`. Legacy methods (`trust`, `md5`) are avoided for secure production operation.
+- **Log Masking**: Database user creation tasks enforce `no_log: true` by default (`postgresql_users_no_log: true`) to prevent password exposure in execution logs.
+- **File Permissions**: Cluster configuration drop-ins in `/etc/postgresql/<version>/main/conf.d/` are created with mode `0640` owned by `postgres:postgres`.
+- **SSL Encryption**: SSL connection support is enabled by default (`postgresql_ssl_enabled: true`).
+
+## 🧪 Check mode behavior
+
+- Declarative argument specifications (`meta/argument_specs.yml`) and input validation tasks (`tasks/assert.yml`) run normally in Check Mode (`--check`).
+- Package installation (`ansible.builtin.apt`) and configuration rendering (`ansible.builtin.template`) simulate changes without mutating remote state or writing files to disk.
+- Template tasks show exact line diffs when diff mode (`--diff`) is enabled.
+
+## 🌐 Network resilience
+
+This role relies on external package repositories and network downloads for PostgreSQL installation and repository keys. Key retrieval (`ansible.builtin.get_url`) and package installation tasks include automatic retry logic to withstand transient network failures during updates and package downloads.
+
+## 🧰 Repository management
+
+The role manages the official PostgreSQL Global Development Group (PGDG) apt repository at `apt.postgresql.org` (`https://apt.postgresql.org/pub/repos/apt`).
+- Keyring location: `/usr/share/keyrings/postgresql-archive-keyring.gpg`
+- Repository source file: `/etc/apt/sources.list.d/pgdg.list`
+- Repository setup can be disabled by setting `postgresql_use_pgdg_repo: false` to use standard OS distribution packages.
+
+## 🔧 Troubleshooting
+
+### Check Cluster Status
+```bash
+sudo systemctl status postgresql
+pg_lsclusters
+```
+
+### Inspect Log Files
+```bash
+# Cluster data log directory
+ls -la /var/lib/postgresql/<version>/main/log/
+
+# Cluster startup logs
+ls -la /var/log/postgresql/
+```
+
+### Test Connection & Catalog Access
+```bash
+pg_isready -p 5432
+sudo -u postgres psql -c "\l"
+```
+
+### Validate Logrotate Configuration Syntax
+```bash
+sudo logrotate -d -s /var/lib/logrotate/status /etc/logrotate.conf
 ```
 
 ## 📁 File Structure
@@ -267,7 +336,7 @@ ansible-role-postgresql/
 │   ├── main.yml                       # Role metadata
 │   └── argument_specs.yml             # Native argument specification validation
 ├── molecule/
-│   └── default/                       # Molecule testing scenario (Ubuntu 24.04/26.04)
+│   └── default/                       # Molecule testing scenario
 ├── tasks/
 │   ├── main.yml                       # Main task orchestration
 │   ├── assert.yml                     # Input assertion validation
@@ -292,34 +361,54 @@ ansible-role-postgresql/
     └── ubuntu_26.04.yml               # Ubuntu 26.04 default version
 ```
 
-## 🏷️ Tags Usage
+## 🏷️ Tags
 
-| Tag | Target Tasks | Description |
-|---|---|---|
-| `postgresql_setup` | Prerequisites & version resolution | Python packages, locale generation |
-| `postgresql_install` | PGDG repo & package installation | Apt repository and server/client packages |
-| `postgresql_configure` | conf.d & pg_hba.conf | Renders configuration files |
-| `postgresql_databases` | DB objects | Declarative databases, users, and privileges |
-| `postgresql_logrotate` | Logrotate setup | Log rotation configuration |
-| `postgresql_test` | Readiness checks | `postgresql_ping` and connectivity checks |
+| Tag | Description |
+|---|---|
+| `postgresql_setup` | Python prerequisites & locale generation |
+| `postgresql_install` | PGDG apt repository and package installation |
+| `postgresql_configure` | `99-ansible.conf` & `pg_hba.conf` rendering |
+| `postgresql_databases` | Declarative databases, users, privileges, extensions |
+| `postgresql_logrotate` | Log rotation configuration |
+| `postgresql_test` | Readiness checks |
 
-## 🔍 Check Mode Behavior
+## CI/CD Pipeline
 
-This role fully supports Ansible `--check` mode:
-- Configuration file template tasks render dry-run line diffs (`--diff`).
-- Systemd service states and declarative database objects indicate planned actions without mutating state.
+This repository uses centralized, reusable GitHub Actions workflows from [github-workflows](https://github.com/grzegorzfranus/github-workflows) (`@main`) for quality assurance, security scanning, and release automation.
 
-## 📖 Example Playbooks
+### CI Pipeline (`ansible-ci.yml`)
+
+Runs on every Pull Request in a two-tier gate pattern:
+
+1. **Branch Name Lint** — enforces naming conventions (`feature/`, `bugfix/`, `fix/`, `hotfix/`, `release/`, `chore/`, `docs/`, `refactor/`, `test/`, `build/`, `ci/`, `perf/`, `revert/`)
+2. **PR Title Lint** — enforces [Conventional Commits](https://www.conventionalcommits.org/) format (`feat:`, `fix:`, `ci:`, etc.)
+3. **YAML Syntax Lint** — validates YAML formatting via `yamllint`
+4. **Ansible Lint** — checks Ansible best practices and role standards
+5. **Galaxy Metadata Validation** — verifies `meta/main.yml` schema and requirements (`ansible-meta-validate.yml`)
+6. **Security Scanning** — TruffleHog secret detection and Trivy IaC scanning (`ansible-security.yml`)
+7. **Molecule Integration Tests** — executes Molecule test matrix (`default` scenario) across supported distros (`ansible-molecule.yml`)
+8. **Merge Check Gate** — single authoritative status check aggregating all results for branch protection
+
+### Release & Publish Pipeline (`ansible-publish.yml`)
+
+Automated via [Release Please](https://github.com/googleapis/release-please):
+
+1. **Push to `main`** → Release Please creates or updates a Release PR with automated changelog generation
+2. **Release PR Validation** → validates YAML syntax and actions schema before setting `Merge Check` status
+3. **Merge Release PR** → creates Git version tag and GitHub Release automatically
+4. **Ansible Galaxy Publish** → publishes tagged release to Ansible Galaxy via `ansible-publish.yml`
+
+## Example Playbooks
 
 ```yaml
 ---
-- name: Deploy Standalone PostgreSQL 17 Server
+- name: Deploy Standalone PostgreSQL 18 Server
   hosts: db_servers
   become: true
   roles:
     - role: grzegorzfranus.postgresql
       vars:
-        postgresql_version: "17"
+        postgresql_version: "18"
         postgresql_shared_buffers: "1330MB"
         postgresql_effective_cache_size: "3975MB"
         postgresql_work_mem: "13MB"
@@ -328,33 +417,32 @@ This role fully supports Ansible `--check` mode:
         postgresql_run_test: true
 ```
 
-## 🔒 Security Considerations
-
-- **Authentication**: `postgresql_auth_method` defaults to `scram-sha-256`. Legacy methods (`trust`, `md5`) are strictly prohibited in production.
-- **Log Masking**: User password generation tasks use `no_log: true` by default (`postgresql_users_no_log: true`).
-- **File Permissions**: Cluster configuration drop-ins in `/etc/postgresql/<ver>/main/conf.d/` are created with mode `0640` owned by `postgres:postgres`.
-
-## 🛠️ Troubleshooting
-
-- **Check Cluster Status**: `systemctl status postgresql` or `pg_lsclusters`.
-- **Log Inspection**: Inspect `/var/log/postgresql/` or `/var/lib/postgresql/<ver>/main/log/`.
-- **Connection Test**: Run `sudo -u postgres psql -c "\l"`.
-
 ## 🤝 Contributing
 
-Contributions are welcome! Please submit Pull Requests following the Conventional Commits specification.
+Contributions, bug reports, and feature requests are welcome!
 
-## CI/CD Pipeline
-
-Uses centralized GitHub Actions workflows from `grzegorzfranus/github-workflows@v3.0.1`:
-- Branch naming lint (`feature/`, `bugfix/`, `fix/`, etc.)
-- PR title Conventional Commits lint (`feat:`, `fix:`, etc.)
-- Yamllint + Ansible Lint
-- Molecule testing across Ubuntu 24.04 and 26.04
+- Fork the repository and create your branch from `main`
+- Use [Conventional Commits](https://www.conventionalcommits.org/) for commit messages:
+  - `feat:` — new features
+  - `fix:` — bug fixes
+  - `refactor:` — code refactoring
+  - `docs:` — documentation changes
+  - `ci:` — CI/CD pipeline updates
+  - `build:` — dependency and build configuration updates
+  - `chore:` — maintenance tasks
+  - `test:` — test additions or corrections
+  - `perf:` — performance improvements
+  - `revert:` — code reverts
+  - `style:` — code formatting and style
+- Use branch naming convention: `feature/`, `bugfix/`, `fix/`, `hotfix/`, `release/`, `chore/`, `docs/`, `refactor/`, `test/`, `build/`, `ci/`, `perf/`, `revert/`
+- Ensure your code passes all CI checks (YAML lint, Ansible lint, Molecule tests)
+- Centralized workflows from [github-workflows](https://github.com/grzegorzfranus/github-workflows) are used to run CI/CD pipelines
+- Submit a pull request describing your changes (a template is available under `.github/PULL_REQUEST_TEMPLATE/pull_request_template.md` to help structure your PR description)
+- For major changes, please open an issue first to discuss what you would like to change (issue templates for bug reports, feature requests, and tasks are available under `.github/ISSUE_TEMPLATE/`)
 
 ## 📝 License
 
-Licensed under the Apache-2.0 License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the Apache-2.0 License - see the LICENSE file for details.
 
 ## 👥 Author Information
 
