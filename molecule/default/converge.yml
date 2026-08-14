@@ -4,6 +4,8 @@
   become: true
   vars:
     postgresql_run_test: true
+    postgresql_configure_logrotate: true
+    postgresql_logging_collector: true
     postgresql_install_extra_packages:
       - postgresql-contrib
     postgresql_databases:

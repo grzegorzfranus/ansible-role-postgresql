@@ -4,7 +4,7 @@
 {% if postgresql_log_directory.startswith('/') %}
 {{ postgresql_log_directory }}/*.log {
 {% else %}
-/var/lib/postgresql/{{ __postgresql_effective_version }}/main/{{ postgresql_log_directory }}/*.log /var/log/postgresql/*.log {
+/var/lib/postgresql/{{ __postgresql_effective_version }}/main/{{ postgresql_log_directory }}/*.log {
 {% endif %}
     su {{ postgresql_logrotate_options.su | default('postgres postgres') }}
     {{ postgresql_logrotate_options.frequency | default('daily') }}
