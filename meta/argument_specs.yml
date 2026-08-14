@@ -232,24 +232,116 @@ argument_specs:
         elements: dict
         default: []
         description: List of declarative databases to create.
+        options:
+          name:
+            type: str
+            required: true
+            description: Name of the database to manage.
+          owner:
+            type: str
+            description: Role name of the database owner.
+          encoding:
+            type: str
+            description: Character set encoding.
+          lc_collate:
+            type: str
+            description: Collation locale setting.
+          lc_ctype:
+            type: str
+            description: Character classification locale setting.
+          state:
+            type: str
+            choices: ["present", "absent"]
+            default: "present"
+            description: Target state of the database.
 
       postgresql_users:
         type: list
         elements: dict
         default: []
         description: List of declarative database users to create.
+        options:
+          name:
+            type: str
+            required: true
+            description: Database username or role name.
+          password:
+            type: str
+            description: User password string.
+          role_attr_flags:
+            type: str
+            description: Role attribute flags (e.g., NOSUPERUSER, NOCREATEDB).
+          encrypted:
+            type: bool
+            description: Whether password is pre-encrypted.
+          state:
+            type: str
+            choices: ["present", "absent"]
+            default: "present"
+            description: Target state of the user.
 
       postgresql_privs:
         type: list
         elements: dict
         default: []
         description: List of declarative database privileges to grant or revoke.
+        options:
+          db:
+            type: str
+            description: Target database name for privilege grant.
+          database:
+            type: str
+            description: Target database name for privilege grant.
+          name:
+            type: str
+            description: Target database name for privilege grant.
+          roles:
+            type: raw
+            required: true
+            description: Role name string or list of role names.
+          privs:
+            type: str
+            required: true
+            description: Privilege specification string (e.g., ALL, SELECT, INSERT).
+          type:
+            type: str
+            choices: ["database", "schema", "table", "sequence", "function", "procedure"]
+            default: "database"
+            description: Target object type for privileges.
+          objs:
+            type: str
+            description: Object name or selection pattern (e.g., ALL_IN_SCHEMA).
+          schema:
+            type: str
+            description: Target schema name when granting schema privileges.
+          state:
+            type: str
+            choices: ["present", "absent"]
+            default: "present"
+            description: Target state of the privilege grant.
 
       postgresql_extensions:
         type: list
         elements: dict
         default: []
         description: List of declarative database extensions to enable.
+        options:
+          name:
+            type: str
+            required: true
+            description: Extension name to manage (e.g., pgcrypto, uuid-ossp).
+          db:
+            type: str
+            required: true
+            description: Target database name.
+          schema:
+            type: str
+            description: Schema in which to create extension objects.
+          state:
+            type: str
+            choices: ["present", "absent"]
+            default: "present"
+            description: Target state of the extension.
 
       postgresql_logrotate_options:
         type: dict

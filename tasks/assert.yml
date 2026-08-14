@@ -104,3 +104,64 @@
       postgresql_logrotate_options must be a dict, logrotate requires logging_collector,
       and log_directory cannot resolve to '/var/log/postgresql' (collides with postgresql-common).
     success_msg: "Logrotate configuration settings and requirements are valid."
+
+- name: "PostgreSQL | assert | Validate SSL certificate and key paths"
+  ansible.builtin.assert:
+    that:
+      - not (postgresql_ssl_enabled | bool) or
+        (postgresql_ssl_cert_file is defined and
+         postgresql_ssl_cert_file | string | length > 0 and
+         postgresql_ssl_cert_file.startswith('/'))
+      - not (postgresql_ssl_enabled | bool) or
+        (postgresql_ssl_key_file is defined and
+         postgresql_ssl_key_file | string | length > 0 and
+         postgresql_ssl_key_file.startswith('/'))
+    fail_msg: >-
+      When postgresql_ssl_enabled is true, postgresql_ssl_cert_file and
+      postgresql_ssl_key_file must be non-empty absolute path strings.
+    success_msg: "SSL certificate and key path configurations are valid."
+
+- name: "PostgreSQL | assert | Validate memory size setting formats"
+  ansible.builtin.assert:
+    that:
+      - postgresql_shared_buffers | string is regex('^[0-9]+(B|kB|MB|GB|TB)?$')
+      - postgresql_work_mem | string is regex('^[0-9]+(B|kB|MB|GB|TB)?$')
+      - postgresql_maintenance_work_mem | string is regex('^[0-9]+(B|kB|MB|GB|TB)?$')
+      - postgresql_effective_cache_size | string is regex('^[0-9]+(B|kB|MB|GB|TB)?$')
+      - postgresql_max_wal_size | string is regex('^[0-9]+(B|kB|MB|GB|TB)?$')
+      - postgresql_min_wal_size | string is regex('^[0-9]+(B|kB|MB|GB|TB)?$')
+    fail_msg: >-
+      Memory size variables must be formatted as integers with optional units
+      (B, kB, MB, GB, TB) without spaces (e.g., '128MB', '4GB').
+    success_msg: "Memory size setting formats are valid."
+
+- name: "PostgreSQL | assert | Validate time setting formats"
+  ansible.builtin.assert:
+    that:
+      - postgresql_checkpoint_timeout | string is regex('^[0-9]+(ms|s|min|h|d)?$')
+      - postgresql_log_rotation_age | string is regex('^[0-9]+(ms|s|min|h|d)?$')
+    fail_msg: >-
+      Time settings must be formatted as integers with optional units
+      (ms, s, min, h, d) without spaces (e.g., '15min', '1d').
+    success_msg: "Time setting formats are valid."
+
+- name: "PostgreSQL | assert | Validate min_wal_size does not exceed max_wal_size"
+  ansible.builtin.assert:
+    that:
+      - (postgresql_min_wal_size | human_to_bytes | int) <= (postgresql_max_wal_size | human_to_bytes | int)
+    fail_msg: "postgresql_min_wal_size cannot exceed postgresql_max_wal_size."
+    success_msg: "postgresql_min_wal_size is less than or equal to postgresql_max_wal_size."
+
+- name: "PostgreSQL | assert | Validate postgresql_privs target database specification"
+  ansible.builtin.assert:
+    that:
+      - item.roles is defined
+      - item.privs is defined
+      - (item.db is defined and item.db | string | length > 0) or
+        (item.database is defined and item.database | string | length > 0) or
+        (item.name is defined and item.name | string | length > 0)
+    fail_msg: "Each postgresql_privs entry must specify 'roles', 'privs', and a target database ('db', 'database', or 'name')."
+    success_msg: "postgresql_privs target database specification is valid."
+  loop: "{{ postgresql_privs }}"
+  loop_control:
+    label: "{{ item.roles | default('unknown') }}:{{ item.privs | default('unknown') }}"
