@@ -26,7 +26,7 @@ argument_specs:
       postgresql_configure_logrotate:
         type: bool
         default: false
-        description: Render logrotate configuration for PostgreSQL log directory.
+        description: Render logrotate configuration for PostgreSQL cluster log directory (excludes /var/log/postgresql managed by postgresql-common).
 
       postgresql_config_change_action:
         type: str
@@ -163,7 +163,7 @@ argument_specs:
       postgresql_log_directory:
         type: str
         default: "log"
-        description: Directory where log files are stored.
+        description: Directory where log files are stored. Cannot resolve to /var/log/postgresql when logrotate is enabled.
 
       postgresql_log_filename:
         type: str

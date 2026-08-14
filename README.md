@@ -212,6 +212,12 @@ postgresql_users_no_log: true
 |----------|-------------|---------|
 | `postgresql_logrotate_options` | Logrotate options dictionary for PostgreSQL log files | *See defaults/main.yml* |
 
+> [!NOTE]
+> **Logrotate Scope & Ownership**:
+> - This role manages log rotation exclusively for the cluster log directory PostgreSQL writes to (via `postgresql_log_directory`, defaulting to `/var/lib/postgresql/<version>/main/log/*.log`).
+> - Cluster startup logs in `/var/log/postgresql/*.log` (written by `pg_ctlcluster`) belong to the OS package's `postgresql-common` drop-in (`/etc/logrotate.d/postgresql-common`), which retains those files for 10 weekly rotations.
+> - **Path Assertion Constraint**: `postgresql_log_directory` must not resolve to `/var/log/postgresql` when `postgresql_configure_logrotate` is enabled. Setting it to `/var/log/postgresql` collides with `postgresql-common` and is blocked by validation assertions in `tasks/assert.yml`.
+
 
 
 ## 📌 Role Properties

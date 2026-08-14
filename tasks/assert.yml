@@ -98,6 +98,9 @@
     that:
       - postgresql_logrotate_options is mapping
       - not (postgresql_configure_logrotate | bool) or (postgresql_logging_collector | bool)
-      - not (postgresql_configure_logrotate | bool) or (postgresql_log_directory | regex_replace('/+$', '') != '/var/log/postgresql')
-    fail_msg: "postgresql_logrotate_options must be a dict, logrotate requires logging_collector, and log_directory cannot resolve to '/var/log/postgresql' (collides with postgresql-common)."
+      - not (postgresql_configure_logrotate | bool) or
+        ((postgresql_log_directory | trim | regex_replace('/+$', '')) != '/var/log/postgresql')
+    fail_msg: >-
+      postgresql_logrotate_options must be a dict, logrotate requires logging_collector,
+      and log_directory cannot resolve to '/var/log/postgresql' (collides with postgresql-common).
     success_msg: "Logrotate configuration settings and requirements are valid."
