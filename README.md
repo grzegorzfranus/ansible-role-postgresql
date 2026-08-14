@@ -369,11 +369,29 @@ ansible-role-postgresql/
 
 ## CI/CD Pipeline
 
-Uses centralized GitHub Actions workflows from `grzegorzfranus/github-workflows@main`:
-- Branch name linting (`feature/`, `bugfix/`, `fix/`, `chore/`, etc.)
-- PR title Conventional Commits linting (`feat:`, `fix:`, `chore:`, etc.)
-- Yamllint + Ansible Lint
-- Molecule testing across Ubuntu 24.04, Ubuntu 26.04, and Debian 13
+This repository uses centralized, reusable GitHub Actions workflows from [github-workflows](https://github.com/grzegorzfranus/github-workflows) (`@main`) for quality assurance, security scanning, and release automation.
+
+### CI Pipeline (`ansible-ci.yml`)
+
+Runs on every Pull Request in a two-tier gate pattern:
+
+1. **Branch Name Lint** — enforces naming conventions (`feature/`, `bugfix/`, `fix/`, `hotfix/`, `release/`, `chore/`, `docs/`, `refactor/`, `test/`, `build/`, `ci/`, `perf/`, `revert/`)
+2. **PR Title Lint** — enforces [Conventional Commits](https://www.conventionalcommits.org/) format (`feat:`, `fix:`, `ci:`, etc.)
+3. **YAML Syntax Lint** — validates YAML formatting via `yamllint`
+4. **Ansible Lint** — checks Ansible best practices and role standards
+5. **Galaxy Metadata Validation** — verifies `meta/main.yml` schema and requirements (`ansible-meta-validate.yml`)
+6. **Security Scanning** — TruffleHog secret detection and Trivy IaC scanning (`ansible-security.yml`)
+7. **Molecule Integration Tests** — executes Molecule test matrix (`default` scenario) across supported distros (`ansible-molecule.yml`)
+8. **Merge Check Gate** — single authoritative status check aggregating all results for branch protection
+
+### Release & Publish Pipeline (`ansible-publish.yml`)
+
+Automated via [Release Please](https://github.com/googleapis/release-please):
+
+1. **Push to `main`** → Release Please creates or updates a Release PR with automated changelog generation
+2. **Release PR Validation** → validates YAML syntax and actions schema before setting `Merge Check` status
+3. **Merge Release PR** → creates Git version tag and GitHub Release automatically
+4. **Ansible Galaxy Publish** → publishes tagged release to Ansible Galaxy via `ansible-publish.yml`
 
 ## Example Playbooks
 
@@ -396,11 +414,30 @@ Uses centralized GitHub Actions workflows from `grzegorzfranus/github-workflows@
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please submit Pull Requests following the Conventional Commits specification.
+Contributions, bug reports, and feature requests are welcome!
+
+- Fork the repository and create your branch from `main`
+- Use [Conventional Commits](https://www.conventionalcommits.org/) for commit messages:
+  - `feat:` — new features
+  - `fix:` — bug fixes
+  - `refactor:` — code refactoring
+  - `docs:` — documentation changes
+  - `ci:` — CI/CD pipeline updates
+  - `build:` — dependency and build configuration updates
+  - `chore:` — maintenance tasks
+  - `test:` — test additions or corrections
+  - `perf:` — performance improvements
+  - `revert:` — code reverts
+  - `style:` — code formatting and style
+- Use branch naming convention: `feature/`, `bugfix/`, `fix/`, `hotfix/`, `release/`, `chore/`, `docs/`, `refactor/`, `test/`, `build/`, `ci/`, `perf/`, `revert/`
+- Ensure your code passes all CI checks (YAML lint, Ansible lint, Molecule tests)
+- Centralized workflows from [github-workflows](https://github.com/grzegorzfranus/github-workflows) are used to run CI/CD pipelines
+- Submit a pull request describing your changes (a template is available under `.github/PULL_REQUEST_TEMPLATE/pull_request_template.md` to help structure your PR description)
+- For major changes, please open an issue first to discuss what you would like to change (issue templates for bug reports, feature requests, and tasks are available under `.github/ISSUE_TEMPLATE/`)
 
 ## 📝 License
 
-Licensed under the Apache-2.0 License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the Apache-2.0 License - see the LICENSE file for details.
 
 ## 👥 Author Information
 
