@@ -52,6 +52,5 @@ Thumbs.db
 .env.*
 !.env.example
 
-# Temporary agent context files
+# Temporary working directory
 tmp/
-
