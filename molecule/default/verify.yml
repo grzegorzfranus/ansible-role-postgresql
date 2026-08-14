@@ -104,15 +104,27 @@
         fail_msg: "Logrotate drop-in configuration /etc/logrotate.d/postgresql does not exist."
         success_msg: "Logrotate drop-in configuration file exists."
 
+    - name: "Verify | Stat postgresql-common logrotate drop-in configuration file"
+      ansible.builtin.stat:
+        path: "/etc/logrotate.d/postgresql-common"
+      register: __verify_postgresql_common_file
+
+    - name: "Verify | Assert postgresql-common logrotate drop-in exists"
+      ansible.builtin.assert:
+        that:
+          - __verify_postgresql_common_file.stat.exists
+        fail_msg: "/etc/logrotate.d/postgresql-common does not exist; collision test precondition failed."
+        success_msg: "postgresql-common logrotate drop-in configuration file exists."
+
     - name: "Verify | Run logrotate dry run check as root"
-      ansible.builtin.command: logrotate -d /etc/logrotate.conf
+      ansible.builtin.command: logrotate -d -s /var/lib/logrotate/status /etc/logrotate.conf
       register: __verify_logrotate
       changed_when: false
 
     - name: "Verify | Assert no duplicate log entry or file skip errors in logrotate"
       ansible.builtin.assert:
         that:
-          - "'duplicate log entry' not in __verify_logrotate.stderr"
-          - "'found error in file' not in __verify_logrotate.stderr"
+          - "'duplicate log entry' not in (__verify_logrotate.stdout ~ __verify_logrotate.stderr)"
+          - "'found error in file' not in (__verify_logrotate.stdout ~ __verify_logrotate.stderr)"
         fail_msg: "logrotate reported duplicate entry or file skip error!"
         success_msg: "logrotate dry run passed cleanly without duplicate entries."
