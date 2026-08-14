@@ -146,6 +146,11 @@ postgresql_users_no_log: true
 > Modifying `postgresql_port`, `postgresql_listen_addresses`, `postgresql_shared_buffers`, `postgresql_wal_level`, or `postgresql_max_worker_processes` requires a full PostgreSQL service restart. Because `postgresql_config_change_action` defaults to `"reload"`, PostgreSQL will NOT apply changes to these parameters until a restart occurs.
 > To automatically restart PostgreSQL when configuration changes, set `postgresql_config_change_action: "restart"`.
 
+> [!NOTE]
+> **Mandatory Size & Time Unit Suffixes**
+>
+> All memory size variables (`postgresql_shared_buffers`, `postgresql_work_mem`, `postgresql_maintenance_work_mem`, `postgresql_effective_cache_size`, `postgresql_max_wal_size`, `postgresql_min_wal_size`) and time duration variables (`postgresql_checkpoint_timeout`, `postgresql_log_rotation_age`) require explicit mandatory unit suffixes without spaces (e.g., `B`, `kB`, `MB`, `GB`, `TB` for memory; `ms`, `s`, `min`, `h`, `d` for time). Bare integers without explicit unit suffixes are rejected by assertion validation.
+
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `postgresql_listen_addresses` | Interface listen addresses | `["localhost"]` |

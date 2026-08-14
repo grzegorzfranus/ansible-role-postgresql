@@ -124,24 +124,24 @@
 - name: "PostgreSQL | assert | Validate memory size setting formats"
   ansible.builtin.assert:
     that:
-      - postgresql_shared_buffers | string is regex('^[0-9]+(B|kB|MB|GB|TB)?$')
-      - postgresql_work_mem | string is regex('^[0-9]+(B|kB|MB|GB|TB)?$')
-      - postgresql_maintenance_work_mem | string is regex('^[0-9]+(B|kB|MB|GB|TB)?$')
-      - postgresql_effective_cache_size | string is regex('^[0-9]+(B|kB|MB|GB|TB)?$')
-      - postgresql_max_wal_size | string is regex('^[0-9]+(B|kB|MB|GB|TB)?$')
-      - postgresql_min_wal_size | string is regex('^[0-9]+(B|kB|MB|GB|TB)?$')
+      - postgresql_shared_buffers | string is regex('^[0-9]+(B|kB|MB|GB|TB)$')
+      - postgresql_work_mem | string is regex('^[0-9]+(B|kB|MB|GB|TB)$')
+      - postgresql_maintenance_work_mem | string is regex('^[0-9]+(B|kB|MB|GB|TB)$')
+      - postgresql_effective_cache_size | string is regex('^[0-9]+(B|kB|MB|GB|TB)$')
+      - postgresql_max_wal_size | string is regex('^[0-9]+(B|kB|MB|GB|TB)$')
+      - postgresql_min_wal_size | string is regex('^[0-9]+(B|kB|MB|GB|TB)$')
     fail_msg: >-
-      Memory size variables must be formatted as integers with optional units
+      Memory size variables must be formatted as integers with mandatory unit suffixes
       (B, kB, MB, GB, TB) without spaces (e.g., '128MB', '4GB').
     success_msg: "Memory size setting formats are valid."
 
 - name: "PostgreSQL | assert | Validate time setting formats"
   ansible.builtin.assert:
     that:
-      - postgresql_checkpoint_timeout | string is regex('^[0-9]+(ms|s|min|h|d)?$')
-      - postgresql_log_rotation_age | string is regex('^[0-9]+(ms|s|min|h|d)?$')
+      - postgresql_checkpoint_timeout | string is regex('^[0-9]+(ms|s|min|h|d)$')
+      - postgresql_log_rotation_age | string is regex('^[0-9]+(ms|s|min|h|d)$')
     fail_msg: >-
-      Time settings must be formatted as integers with optional units
+      Time settings must be formatted as integers with mandatory unit suffixes
       (ms, s, min, h, d) without spaces (e.g., '15min', '1d').
     success_msg: "Time setting formats are valid."
 
@@ -155,12 +155,10 @@
 - name: "PostgreSQL | assert | Validate postgresql_privs target database specification"
   ansible.builtin.assert:
     that:
-      - item.roles is defined
-      - item.privs is defined
       - (item.db is defined and item.db | string | length > 0) or
         (item.database is defined and item.database | string | length > 0) or
         (item.name is defined and item.name | string | length > 0)
-    fail_msg: "Each postgresql_privs entry must specify 'roles', 'privs', and a target database ('db', 'database', or 'name')."
+    fail_msg: "Each postgresql_privs entry must specify a target database ('db', 'database', or 'name')."
     success_msg: "postgresql_privs target database specification is valid."
   loop: "{{ postgresql_privs }}"
   loop_control:

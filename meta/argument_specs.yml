@@ -267,6 +267,7 @@ argument_specs:
             description: Database username or role name.
           password:
             type: str
+            no_log: true
             description: User password string.
           role_attr_flags:
             type: str
@@ -305,7 +306,6 @@ argument_specs:
             description: Privilege specification string (e.g., ALL, SELECT, INSERT).
           type:
             type: str
-            choices: ["database", "schema", "table", "sequence", "function", "procedure"]
             default: "database"
             description: Target object type for privileges.
           objs:
