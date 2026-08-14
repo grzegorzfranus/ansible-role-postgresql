@@ -91,3 +91,28 @@
           - __verify_isready.rc == 0
         fail_msg: "pg_isready check failed."
         success_msg: "pg_isready check passed cleanly."
+
+    - name: "Verify | Stat logrotate drop-in configuration file"
+      ansible.builtin.stat:
+        path: "/etc/logrotate.d/postgresql"
+      register: __verify_logrotate_file
+
+    - name: "Verify | Assert logrotate drop-in exists"
+      ansible.builtin.assert:
+        that:
+          - __verify_logrotate_file.stat.exists
+        fail_msg: "Logrotate drop-in configuration /etc/logrotate.d/postgresql does not exist."
+        success_msg: "Logrotate drop-in configuration file exists."
+
+    - name: "Verify | Run logrotate dry run check as root"
+      ansible.builtin.command: logrotate -d /etc/logrotate.conf
+      register: __verify_logrotate
+      changed_when: false
+
+    - name: "Verify | Assert no duplicate log entry or file skip errors in logrotate"
+      ansible.builtin.assert:
+        that:
+          - "'duplicate log entry' not in __verify_logrotate.stderr"
+          - "'found error in file' not in __verify_logrotate.stderr"
+        fail_msg: "logrotate reported duplicate entry or file skip error!"
+        success_msg: "logrotate dry run passed cleanly without duplicate entries."
