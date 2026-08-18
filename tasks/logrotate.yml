@@ -19,6 +19,49 @@
     - postgresql_logrotate_options.archive_directory_path | length > 0
   become: true
 
+- name: "PostgreSQL | logrotate | Stat cluster log directory"
+  ansible.builtin.stat:
+    path: "{{ postgresql_log_directory if postgresql_log_directory.startswith('/') else (__postgresql_data_dir ~ '/' ~ postgresql_log_directory) }}"
+  register: __postgresql_log_dir_stat
+  changed_when: false
+  when:
+    - postgresql_configure_logrotate | bool
+    - postgresql_logrotate_options.archive_directory_path is defined
+    - postgresql_logrotate_options.archive_directory_path | length > 0
+  become: true
+
+- name: "PostgreSQL | logrotate | Stat archive directory"
+  ansible.builtin.stat:
+    path: "{{ postgresql_logrotate_options.archive_directory_path }}"
+  register: __postgresql_archive_dir_stat
+  changed_when: false
+  when:
+    - postgresql_configure_logrotate | bool
+    - postgresql_logrotate_options.archive_directory_path is defined
+    - postgresql_logrotate_options.archive_directory_path | length > 0
+  become: true
+
+# Guard against cross-device olddir silent failure in logrotate.
+# When olddir is on a different filesystem device than the log file, logrotate drops the entire configuration rule.
+- name: "PostgreSQL | logrotate | Assert log directory and archive directory are on the same filesystem"
+  ansible.builtin.assert:
+    that:
+      - __postgresql_log_dir_stat.stat.dev == __postgresql_archive_dir_stat.stat.dev
+    fail_msg: >-
+      Cross-device logrotate error: The archive directory '{{ postgresql_logrotate_options.archive_directory_path }}'
+      (dev={{ __postgresql_archive_dir_stat.stat.dev | default('unknown') }}) resides on a different filesystem than the
+      PostgreSQL log directory '{{ postgresql_log_directory if postgresql_log_directory.startswith('/') else (__postgresql_data_dir ~ '/' ~ postgresql_log_directory) }}'
+      (dev={{ __postgresql_log_dir_stat.stat.dev | default('unknown') }}).
+      Logrotate will reject the entire rule when 'olddir' is on a different device ('olddir and log file are on different devices').
+      To resolve this issue, either:
+      1. Configure an archive directory on the same filesystem/volume as the log directory.
+      2. Disable olddir by setting postgresql_logrotate_options.archive_directory_path to an empty string ("").
+    success_msg: "PostgreSQL log directory and archive directory reside on the same filesystem (dev={{ __postgresql_log_dir_stat.stat.dev }})."
+  when:
+    - postgresql_configure_logrotate | bool
+    - postgresql_logrotate_options.archive_directory_path is defined
+    - postgresql_logrotate_options.archive_directory_path | length > 0
+
 - name: "PostgreSQL | logrotate | Render logrotate configuration"
   ansible.builtin.template:
     src: "logrotate/postgresql.j2"

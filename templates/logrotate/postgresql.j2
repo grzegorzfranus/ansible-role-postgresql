@@ -31,8 +31,11 @@
     notifempty
 {% endif %}
     create 0640 postgres postgres
+    # Signals PostgreSQL to close and reopen log files via 'pg_ctl logrotate' (SIGHUP reload alone does not reopen logs).
+    # Includes fallback to systemctl reload for older PostgreSQL versions or environments where pg_ctl logrotate is unavailable.
     postrotate
         if systemctl is-active --quiet {{ __postgresql_service_name }}; then
+            su -s /bin/sh postgres -c "{{ __postgresql_bin_dir }}/pg_ctl logrotate -D {{ __postgresql_data_dir }}" > /dev/null 2>&1 || \
             systemctl reload {{ __postgresql_service_name }} > /dev/null 2>&1 || true
         fi
     endscript

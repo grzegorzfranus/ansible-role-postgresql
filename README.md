@@ -236,6 +236,14 @@ When system logrotate is enabled, the recommended configuration to avoid dual ro
 - Set `postgresql_log_filename` to a static filename without date substitution patterns (for example, `"postgresql.log"`), delegating log versioning and date extension handling entirely to logrotate.
 
 > [!NOTE]
+> **External Rotation & Server Signaling**:
+> When using external log rotation, PostgreSQL must be signaled to close and reopen its log file after rotation. In accordance with PostgreSQL official documentation (*Log File Maintenance*), the role executes `pg_ctl logrotate` in the `postrotate` script (with a fallback to `systemctl reload` for legacy compatibility). Without this signal, PostgreSQL continues writing into the rotated (renamed) file, leading to potential data loss after compression or deletion.
+
+> [!WARNING]
+> **Filesystem Boundary Constraint (`olddir`)**:
+> The `archive_directory_path` (`olddir`) MUST reside on the same filesystem/device as the PostgreSQL cluster log directory. If `olddir` is placed on a different filesystem or mount point, `logrotate` logs `olddir ... and log file ... are on different devices` and drops the entire log rotation configuration block, causing rotation to silently stop. The role validates this constraint at runtime by comparing filesystem device IDs (`.stat.dev`) and aborts execution with a clear error message if a cross-device mismatch is detected.
+
+> [!NOTE]
 > The role intentionally does not enforce these settings automatically. The choice of whether to rely solely on logrotate, solely on PostgreSQL's internal rotation, or a hybrid combination is left to the user's discretion.
 
 > [!NOTE]
