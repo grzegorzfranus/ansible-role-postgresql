@@ -46,16 +46,20 @@
 - name: "PostgreSQL | logrotate | Assert log directory and archive directory are on the same filesystem"
   ansible.builtin.assert:
     that:
-      - __postgresql_log_dir_stat.stat.dev == __postgresql_archive_dir_stat.stat.dev
+      - __postgresql_log_dir_stat.stat.exists | default(false) | bool
+      - __postgresql_archive_dir_stat.stat.exists | default(false) | bool
+      - (__postgresql_log_dir_stat.stat.dev | default(-1)) == (__postgresql_archive_dir_stat.stat.dev | default(-2))
     fail_msg: >-
       Cross-device logrotate error: The archive directory '{{ postgresql_logrotate_options.archive_directory_path }}'
       (dev={{ __postgresql_archive_dir_stat.stat.dev | default('unknown') }}) resides on a different filesystem than the
       PostgreSQL log directory '{{ postgresql_log_directory if postgresql_log_directory.startswith('/') else (__postgresql_data_dir ~ '/' ~ postgresql_log_directory) }}'
-      (dev={{ __postgresql_log_dir_stat.stat.dev | default('unknown') }}).
+      (dev={{ __postgresql_log_dir_stat.stat.dev | default('unknown') }}), or the log directory does not exist.
       Logrotate will reject the entire rule when 'olddir' is on a different device ('olddir and log file are on different devices').
-      To resolve this issue, either:
+      To resolve this issue:
       1. Configure an archive directory on the same filesystem/volume as the log directory.
       2. Disable olddir by setting postgresql_logrotate_options.archive_directory_path to an empty string ("").
+      3. If the cluster log directory does not exist yet, PostgreSQL logging_collector has not been applied (requires a cluster restart).
+         Restart the PostgreSQL service or set postgresql_config_change_action: "restart".
     success_msg: "PostgreSQL log directory and archive directory reside on the same filesystem (dev={{ __postgresql_log_dir_stat.stat.dev }})."
   when:
     - postgresql_configure_logrotate | bool
