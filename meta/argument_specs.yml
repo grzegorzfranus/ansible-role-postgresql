@@ -345,4 +345,45 @@ argument_specs:
 
       postgresql_logrotate_options:
         type: dict
-        description: Logrotate options for PostgreSQL log files (supports rotate, frequency, compress, delaycompress, missingok, notifempty, su).
+        description: Logrotate options for PostgreSQL log files (supports rotate, frequency, compress, delaycompress, missingok, notifempty, su, archive_directory_path, dateext, dateformat).
+        options:
+          rotate:
+            type: int
+            default: 7
+            description: Number of rotated log files to retain.
+          frequency:
+            type: str
+            default: "daily"
+            description: Rotation frequency for log files (daily, weekly, monthly, yearly).
+          compress:
+            type: bool
+            default: true
+            description: Compress rotated log files with gzip.
+          delaycompress:
+            type: bool
+            default: true
+            description: Postpone compression of previous log file until next rotation cycle.
+          missingok:
+            type: bool
+            default: true
+            description: Do not issue error if log file is missing.
+          notifempty:
+            type: bool
+            default: true
+            description: Do not rotate log file if it is empty.
+          su:
+            type: str
+            default: "postgres postgres"
+            description: User and group credentials used for running logrotate.
+          archive_directory_path:
+            type: str
+            default: ""
+            description: Directory to move rotated archive log files into (olddir). An empty string disables olddir.
+          dateext:
+            type: bool
+            default: true
+            description: Append date extension suffix to rotated log files.
+          dateformat:
+            type: str
+            default: "-%Y%m%d"
+            description: Date extension format string appended to rotated log filenames when dateext is true.

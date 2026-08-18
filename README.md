@@ -216,6 +216,27 @@ postgresql_users_no_log: true
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `postgresql_logrotate_options` | Logrotate options dictionary for PostgreSQL log files | *See defaults/main.yml* |
+| `postgresql_logrotate_options.rotate` | Number of rotated log files to retain | `7` |
+| `postgresql_logrotate_options.frequency` | Rotation frequency (`daily`, `weekly`, `monthly`, `yearly`) | `"daily"` |
+| `postgresql_logrotate_options.compress` | Compress rotated log files with gzip | `true` |
+| `postgresql_logrotate_options.delaycompress` | Postpone compression of previous log file until next cycle | `true` |
+| `postgresql_logrotate_options.missingok` | Do not issue error if log file is missing | `true` |
+| `postgresql_logrotate_options.notifempty` | Do not rotate log file if it is empty | `true` |
+| `postgresql_logrotate_options.su` | User and group credentials used for running logrotate | `"postgres postgres"` |
+| `postgresql_logrotate_options.archive_directory_path` | Dedicated directory path to move rotated log archives into (`olddir`). Empty string disables `olddir` | `""` |
+| `postgresql_logrotate_options.dateext` | Append date extension suffix to rotated log files | `true` |
+| `postgresql_logrotate_options.dateformat` | Date extension format string when `dateext` is true | `"-%Y%m%d"` |
+
+#### Log Rotation Ownership
+
+PostgreSQL provides its own internal log rotation mechanism via `logging_collector` (configured through `postgresql_logging_collector`, `postgresql_log_rotation_age`, and the timestamp pattern in `postgresql_log_filename`). When `postgresql_configure_logrotate: true` is enabled, both PostgreSQL internal rotation and system logrotate may operate simultaneously on the cluster log directory.
+
+When system logrotate is enabled, the recommended configuration to avoid dual rotation conflicts is:
+- Set `postgresql_log_rotation_age: "0"` to disable PostgreSQL internal time-based automatic rotation.
+- Set `postgresql_log_filename` to a static filename without date substitution patterns (for example, `"postgresql.log"`), delegating log versioning and date extension handling entirely to logrotate.
+
+> [!NOTE]
+> The role intentionally does not enforce these settings automatically. The choice of whether to rely solely on logrotate, solely on PostgreSQL's internal rotation, or a hybrid combination is left to the user's discretion.
 
 > [!NOTE]
 > **Logrotate Scope & Ownership**:

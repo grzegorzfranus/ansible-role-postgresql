@@ -104,6 +104,20 @@
         fail_msg: "Logrotate drop-in configuration /etc/logrotate.d/postgresql does not exist."
         success_msg: "Logrotate drop-in configuration file exists."
 
+    - name: "Verify | Slurp logrotate drop-in configuration"
+      ansible.builtin.slurp:
+        src: "/etc/logrotate.d/postgresql"
+      register: __verify_logrotate_content
+
+    - name: "Verify | Assert default logrotate configuration directives"
+      ansible.builtin.assert:
+        that:
+          - "'olddir' not in (__verify_logrotate_content.content | b64decode)"
+          - "'dateext' in (__verify_logrotate_content.content | b64decode)"
+          - "'dateformat -%Y%m%d' in (__verify_logrotate_content.content | b64decode)"
+        fail_msg: "Default logrotate configuration does not match expected directives (must contain dateext/dateformat and omit olddir)."
+        success_msg: "Default logrotate configuration correctly omits olddir and includes dateext with dateformat."
+
     - name: "Verify | Stat postgresql-common logrotate drop-in configuration file"
       ansible.builtin.stat:
         path: "/etc/logrotate.d/postgresql-common"

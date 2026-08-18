@@ -3,6 +3,22 @@
 # PostgreSQL Logrotate Configuration
 # ==============================================================================
 
+# Creates dedicated archive directory for rotated PostgreSQL logs when olddir is configured.
+# Owned by postgres:postgres because logrotate runs under the 'su postgres postgres' directive
+# and requires write permissions to move rotated log archives into the target olddir directory.
+- name: "PostgreSQL | logrotate | Ensure archive directory exists"
+  ansible.builtin.file:
+    path: "{{ postgresql_logrotate_options.archive_directory_path }}"
+    state: "directory"
+    owner: "postgres"
+    group: "postgres"
+    mode: "0750"
+  when:
+    - postgresql_configure_logrotate | bool
+    - postgresql_logrotate_options.archive_directory_path is defined
+    - postgresql_logrotate_options.archive_directory_path | length > 0
+  become: true
+
 - name: "PostgreSQL | logrotate | Render logrotate configuration"
   ansible.builtin.template:
     src: "logrotate/postgresql.j2"

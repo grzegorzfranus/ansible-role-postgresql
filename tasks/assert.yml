@@ -100,8 +100,20 @@
       - not (postgresql_configure_logrotate | bool) or (postgresql_logging_collector | bool)
       - not (postgresql_configure_logrotate | bool) or
         ((postgresql_log_directory | trim | regex_replace('/+$', '')) != '/var/log/postgresql')
+      - postgresql_logrotate_options.archive_directory_path is defined
+      - postgresql_logrotate_options.archive_directory_path is string
+      - postgresql_logrotate_options.archive_directory_path == '' or postgresql_logrotate_options.archive_directory_path.startswith('/')
+      - postgresql_logrotate_options.dateext is defined
+      - postgresql_logrotate_options.dateext is boolean
+      - not (postgresql_logrotate_options.dateext | bool) or
+        (postgresql_logrotate_options.dateformat is defined and
+         postgresql_logrotate_options.dateformat is string and
+         postgresql_logrotate_options.dateformat | length > 0)
     fail_msg: >-
-      postgresql_logrotate_options must be a dict, logrotate requires logging_collector,
+      Invalid logrotate configuration: postgresql_logrotate_options must be a dictionary,
+      archive_directory_path must be a string (empty or starting with '/'),
+      dateext must be a boolean, dateformat must be a non-empty string when dateext is true,
+      logrotate requires postgresql_logging_collector to be enabled,
       and log_directory cannot resolve to '/var/log/postgresql' (collides with postgresql-common).
     success_msg: "Logrotate configuration settings and requirements are valid."
 
