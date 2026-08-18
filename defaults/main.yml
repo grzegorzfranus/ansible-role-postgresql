@@ -273,3 +273,12 @@ postgresql_logrotate_options:
   missingok: true
   notifempty: true
   su: "postgres postgres"
+  # Dedicated directory path to move rotated log archives into (logrotate olddir directive).
+  # An empty string disables olddir and retains archives in the database cluster log directory without role intervention.
+  archive_directory_path: ""
+  # Controls whether date extension suffix is appended to rotated log filenames.
+  # Default is true.
+  dateext: true
+  # Date format extension string appended to rotated log filenames when dateext is true.
+  # Default is "-%Y%m%d".
+  dateformat: "-%Y%m%d"
