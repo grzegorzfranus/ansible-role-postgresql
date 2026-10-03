@@ -69,6 +69,8 @@ This role requires root access for package installation and service management. 
 
 ### 2. Declarative Databases, Users & Extensions
 
+Users are created before databases, so a database `owner` may name a user declared in `postgresql_users`.
+
 ```yaml
 ---
 - name: Configure PostgreSQL with Databases and Users
@@ -81,6 +83,7 @@ This role requires root access for package installation and service management. 
         postgresql_databases:
           - name: "app_db"
             encoding: "UTF8"
+            owner: "app_user"
         postgresql_users:
           - name: "app_user"
             password: "{{ vault_app_user_password }}"

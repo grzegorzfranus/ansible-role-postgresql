@@ -239,7 +239,7 @@ argument_specs:
             description: Name of the database to manage.
           owner:
             type: str
-            description: Role name of the database owner.
+            description: Role name of the database owner. Users are created before databases, so a database `owner` may name a user declared in `postgresql_users`.
           encoding:
             type: str
             description: Character set encoding.
