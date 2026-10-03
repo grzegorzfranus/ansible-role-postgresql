@@ -3,22 +3,6 @@
 # PostgreSQL Declarative Database Objects Management
 # ==============================================================================
 
-- name: "PostgreSQL | databases | Manage declarative databases"
-  community.postgresql.postgresql_db:
-    name: "{{ item.name }}"
-    owner: "{{ item.owner | default(omit) }}"
-    encoding: "{{ item.encoding | default(omit) }}"
-    lc_collate: "{{ item.lc_collate | default(omit) }}"
-    lc_ctype: "{{ item.lc_ctype | default(omit) }}"
-    state: "{{ item.state | default('present') }}"
-    login_port: "{{ postgresql_port }}"
-  become: true
-  become_user: "{{ __postgresql_user }}"
-  loop: "{{ postgresql_databases }}"
-  loop_control:
-    label: "{{ item.name }}"
-  when: postgresql_databases | length > 0
-
 - name: "PostgreSQL | databases | Manage declarative database users"
   community.postgresql.postgresql_user:
     name: "{{ item.name }}"
@@ -34,6 +18,22 @@
   loop_control:
     label: "{{ item.name }}"
   when: postgresql_users | length > 0
+
+- name: "PostgreSQL | databases | Manage declarative databases"
+  community.postgresql.postgresql_db:
+    name: "{{ item.name }}"
+    owner: "{{ item.owner | default(omit) }}"
+    encoding: "{{ item.encoding | default(omit) }}"
+    lc_collate: "{{ item.lc_collate | default(omit) }}"
+    lc_ctype: "{{ item.lc_ctype | default(omit) }}"
+    state: "{{ item.state | default('present') }}"
+    login_port: "{{ postgresql_port }}"
+  become: true
+  become_user: "{{ __postgresql_user }}"
+  loop: "{{ postgresql_databases }}"
+  loop_control:
+    label: "{{ item.name }}"
+  when: postgresql_databases | length > 0
 
 - name: "PostgreSQL | databases | Manage declarative database privileges"
   community.postgresql.postgresql_privs:

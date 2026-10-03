@@ -11,6 +11,7 @@
     postgresql_databases:
       - name: "molecule_db"
         encoding: "UTF8"
+        owner: "molecule_user"
     postgresql_users:
       - name: "molecule_user"
         password: "MoleculeSecurePassword123!"
