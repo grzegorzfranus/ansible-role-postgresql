@@ -80,6 +80,27 @@
         fail_msg: "Database molecule_db owner is not molecule_user."
         success_msg: "Database molecule_db owner is molecule_user."
 
+    - name: "Verify | Verify default privileges catalog query in molecule_db"
+      community.postgresql.postgresql_query:
+        db: molecule_db
+        query: "SELECT pg_get_userbyid(defaclrole) AS owner, defaclobjtype::text AS objtype, defaclnamespace::int AS ns, array_to_string(defaclacl, ',') AS acl FROM pg_default_acl;"
+      become: true
+      become_user: postgres
+      register: __verify_default_privs_query
+
+    - name: "Verify | Assert default privileges exist for molecule_app"
+      ansible.builtin.assert:
+        that:
+          - >-
+            (__verify_default_privs_query.query_result
+            | selectattr('owner', 'equalto', 'molecule_user')
+            | selectattr('objtype', 'equalto', 'r')
+            | selectattr('ns', 'equalto', 0)
+            | selectattr('acl', 'search', 'molecule_app=arwd/molecule_user')
+            | list | length) > 0
+        fail_msg: "Default privileges for molecule_app on objects created by molecule_user were not found."
+        success_msg: "Default privileges for molecule_app on objects created by molecule_user exist."
+
     - name: "Verify | Verify pgcrypto extension in molecule_db"
       community.postgresql.postgresql_query:
         db: molecule_db
