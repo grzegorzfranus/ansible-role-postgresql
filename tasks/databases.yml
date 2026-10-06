@@ -43,6 +43,8 @@
     type: "{{ item.type | default('database') }}"
     objs: "{{ item.objs | default(omit) }}"
     schema: "{{ item.schema | default(omit) }}"
+    target_roles: "{{ (item.target_roles if item.target_roles is string else item.target_roles | join(',')) if item.target_roles is defined else omit }}"
+    grant_option: "{{ item.grant_option | default(omit) }}"
     state: "{{ item.state | default('present') }}"
     login_port: "{{ postgresql_port }}"
   become: true

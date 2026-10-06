@@ -314,6 +314,12 @@ argument_specs:
           schema:
             type: str
             description: Target schema name when granting schema privileges.
+          target_roles:
+            type: raw
+            description: Role or list of roles whose future objects the default privileges apply to; only with type default_privs. Omit to apply them to objects created by the role running the task.
+          grant_option:
+            type: bool
+            description: Whether the grantee may grant the privileges to others.
           state:
             type: str
             choices: ["present", "absent"]

@@ -69,7 +69,7 @@ This role requires root access for package installation and service management. 
 
 ### 2. Declarative Databases, Users & Extensions
 
-Users are created before databases, so a database `owner` may name a user declared in `postgresql_users`.
+Users are created before databases, so a database `owner` may name a user declared in `postgresql_users`. The `target_roles` option makes the default privileges apply to objects created by that role (for example the owner role that runs migrations), and `schema: "not-specified"` makes them global.
 
 ```yaml
 ---
@@ -92,6 +92,13 @@ Users are created before databases, so a database `owner` may name a user declar
             roles: ["app_user"]
             privs: "ALL"
             type: "database"
+          - db: "app_db"
+            roles: "app_reader"
+            privs: "SELECT"
+            type: "default_privs"
+            objs: "TABLES"
+            schema: "not-specified"
+            target_roles: "app_user"
         postgresql_extensions:
           - name: "pgcrypto"
             db: "app_db"
