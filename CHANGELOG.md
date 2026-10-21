@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.1](https://github.com/grzegorzfranus/ansible-role-postgresql/compare/v1.4.0...v1.4.1) (2026-10-21)
+
+
+### CI/CD
+
+* **workflows:** align Dependabot, release and CI workflows with github-workflows ([#38](https://github.com/grzegorzfranus/ansible-role-postgresql/issues/38)) ([#39](https://github.com/grzegorzfranus/ansible-role-postgresql/issues/39)) ([8b26a9d](https://github.com/grzegorzfranus/ansible-role-postgresql/commit/8b26a9d449a5d1fcb4e0e383331dc78d0f1e1661))
+
 ## [1.4.0](https://github.com/grzegorzfranus/ansible-role-postgresql/compare/v1.3.1...v1.4.0) (2026-10-06)
 
 
