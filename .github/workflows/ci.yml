@@ -1,9 +1,23 @@
 ---
+# ==============================================================================
+# Workflow: CI
+# ==============================================================================
+# Purpose:
+#   Quality gate of this role. Validates the branch name and the pull request
+#   title, lints the workflow files (util-workflow-lint.yml), runs the shared
+#   Ansible CI (ansible-ci.yml: lint, metadata, security, SBOM, Molecule) and
+#   aggregates the results in the Merge Check Gate job required by the
+#   repository ruleset.
+#
+# Triggers:
+#   pull_request: every pull request
+# ==============================================================================
+
 name: "CI"
 
 run-name: "CI: ${{ github.event.pull_request.title || github.ref_name }} by @${{ github.actor }}"
 
-'on':
+"on":
   pull_request: {}
 
 concurrency:
@@ -102,7 +116,21 @@ jobs:
           echo "### ✅ PR Title Validation Passed" >> "$GITHUB_STEP_SUMMARY"
 
   # ================================================================
-  # 3. ANSIBLE ROLE TESTING PIPELINE
+  # 3. WORKFLOW LINT (Reusable Workflow)
+  # ----------------------------------------------------------------
+  # Lints the workflow files with yamllint, actionlint and zizmor
+  # (util-workflow-lint.yml). An empty paths input runs it on every
+  # pull request.
+  # ================================================================
+  workflow-lint:
+    name: "🔍 Lint Workflows"
+    needs: [branch-name-lint, pr-title-lint]
+    uses: grzegorzfranus/github-workflows/.github/workflows/util-workflow-lint.yml@main
+    with:
+      paths: ""
+
+  # ================================================================
+  # 4. ANSIBLE ROLE TESTING PIPELINE
   # ----------------------------------------------------------------
   # Runs yamllint, ansible-lint, metadata verification, security
   # scanning, and Molecule integration tests across supported OS distributions.
@@ -115,14 +143,14 @@ jobs:
       molecule-scenarios: '["default"]'
 
   # ================================================================
-  # 4. MERGE CHECK GATE
+  # 5. MERGE CHECK GATE
   # ----------------------------------------------------------------
   # Aggregates test results across all workflow jobs to serve as
   # the single required status check for branch protection rules.
   # ================================================================
   merge-check:
     name: "Merge Check Gate"
-    needs: [branch-name-lint, pr-title-lint, ci]
+    needs: [branch-name-lint, pr-title-lint, workflow-lint, ci]
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -133,10 +161,12 @@ jobs:
         env:
           BRANCH_NAME_LINT_RESULT: ${{ needs.branch-name-lint.result }}
           PR_TITLE_LINT_RESULT: ${{ needs.pr-title-lint.result }}
+          WORKFLOW_LINT_RESULT: ${{ needs.workflow-lint.result }}
           CI_RESULT: ${{ needs.ci.result }}
         run: |
           echo "Branch name lint: $BRANCH_NAME_LINT_RESULT"
           echo "PR title lint: $PR_TITLE_LINT_RESULT"
+          echo "Workflow lint: $WORKFLOW_LINT_RESULT"
           echo "CI result: $CI_RESULT"
           has_failures=0
           if [[ "$BRANCH_NAME_LINT_RESULT" == "failure" || "$BRANCH_NAME_LINT_RESULT" == "cancelled" ]]; then
@@ -145,6 +175,10 @@ jobs:
           fi
           if [[ "$PR_TITLE_LINT_RESULT" == "failure" || "$PR_TITLE_LINT_RESULT" == "cancelled" ]]; then
             echo "::error::pr-title-lint failed or was cancelled"
+            has_failures=1
+          fi
+          if [[ "$WORKFLOW_LINT_RESULT" == "failure" || "$WORKFLOW_LINT_RESULT" == "cancelled" ]]; then
+            echo "::error::workflow-lint failed or was cancelled"
             has_failures=1
           fi
           if [[ "$CI_RESULT" == "failure" || "$CI_RESULT" == "cancelled" ]]; then
